@@ -568,6 +568,7 @@ function calcDistance(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+/* ── GPS 위치 제한 (테스트용 비활성화) ──────────────────────────────────
 function startGPS(){
   if(!navigator.geolocation){state.gpsOk=true;chkStep0();return;}
   navigator.geolocation.watchPosition(p=>{
@@ -585,6 +586,15 @@ function startGPS(){
     chkStep0();
   },()=>{state.gpsLat='N/A';state.gpsLng='N/A';state.gpsOk=true;chkStep0();},
   {enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+── GPS 위치 제한 끝 ── */
+
+// [테스트 모드] GPS 체크 비활성화 — 어디서든 접근 허용
+function startGPS(){
+  // GPS 위치 확인 없이 바로 통과 처리
+  state.gpsLat='TEST'; state.gpsLng='TEST'; state.gpsAccuracy=0; state.gpsOk=true;
+  document.getElementById('locationBlock').style.display='none';
+  chkStep0();
 }
 
 function chkStep0(){document.getElementById('step0Next').disabled=!(state.shift&&state.gpsOk);}
