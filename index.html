@@ -155,6 +155,17 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .tab-wrap{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:14px;}
 .tab-btn{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:21px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.2s;}
 .tab-btn.active{background:var(--surface3);color:var(--accent);border:1px solid var(--border);}
+
+/* 금일 표준 윤독 인라인 패널 (c14 아래) */
+.yd-summary-chip{font-size:18px;font-weight:700;border-radius:12px;padding:4px 11px;}
+.yd-member-row{display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:9px;padding:9px 12px;margin-bottom:5px;border:1px solid var(--border);}
+.yd-member-row.done{border-color:rgba(34,197,94,0.35);}
+.yd-member-row.pending{border-color:rgba(239,68,68,0.35);}
+.yd-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#0a0c0f;flex:none;}
+.yd-member-name{font-size:20px;font-weight:600;color:var(--text);flex:none;width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.yd-member-detail{font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.yd-member-detail.done{color:var(--green);}
+.yd-member-detail.pending{color:#fca5a5;font-weight:700;}
 </style>
 </head>
 <body>
@@ -347,6 +358,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 <script>
 // ── 설정 ─────────────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx1UNeXi_U__DUMApuSLANUODE1TORnX3C3PCQE9l0ND_-ZQiGV15fbROew68eyekU/exec';
+// 윤독 현황용 별도 스프레드시트(윤독 응답 시트)에 연결된 Apps Script 웹앱 URL
+const YOONDOK_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxMJqJyzx1Rqxlr-ofWeq7Yo8vclINSTeTypCYOB0L3pAo30wyKu9rqcgXAJjgQzC6/exec';
 const SITE_LAT = 36.4515444;
 const SITE_LNG = 127.4127681;
 const SITE_RADIUS_M = 500;
@@ -441,6 +454,7 @@ const COMMON_ITEMS = [
   {id:'c11', text:'위험장소 방호조치, 출입금지 조치 확인'},
   {id:'c12', text:'지게차 운전 시 안전벨트 착용, 하차 시 시동키 분리 여부'},
   {id:'c13', text:'정기 및 수시 위험성평가 이행 및 개선사항 확인'},
+  {id:'c14', text:'금일 표준 윤독 실시 확인'},
 ];
 
 const TURN_ITEMS = {
@@ -483,6 +497,7 @@ let state = {
   forkliftInactive: new Set(),
   forkliftDetail: {},   // { 호차번호: { status:'ok'|'ng', parts:[] } }
   forkliftLoaded: false,
+  yoondokToday: null,   // 금일 표준 윤독 현황 캐시
 };
 
 let qrStream = null;
@@ -563,9 +578,16 @@ function renderCommonList(){
       panel.id='forkliftInlinePanel';
       container.appendChild(panel);
     }
+    // c14 항목(금일 표준 윤독 실시 확인) 바로 다음에 윤독 현황 패널 삽입
+    if(item.id==='c14'){
+      const ydPanel=document.createElement('div');
+      ydPanel.id='yoondokInlinePanel';
+      container.appendChild(ydPanel);
+    }
   });
   updateCommonProgress();
   renderForkliftInline();
+  loadYoondokToday();
 }
 
 function updateCommonProgress(){
@@ -999,6 +1021,66 @@ function showResult(okC,partC,ngC,naC,success){
       <div class="stat-chip chip-ng">X 불량 ${ngC}</div>
       <div class="stat-chip chip-na">- ${naC}</div>
     </div>`;
+}
+
+// ── 금일 표준 윤독 현황 (c14 항목 아래 인라인 패널) ──────────────
+function loadYoondokToday(){
+  const el = document.getElementById('yoondokInlinePanel');
+  if(!el || !state.shift) return;
+  el.innerHTML = `<div class="fk-panel" style="text-align:center;color:var(--text2);font-size:18px;">윤독 현황 불러오는 중...</div>`;
+  if(YOONDOK_SCRIPT_URL.indexOf('PASTE_YOUR')===0){
+    el.innerHTML = `<div class="fk-panel"><div class="warn-box"><span>⚠️</span><span>YOONDOK_SCRIPT_URL이 설정되지 않았습니다.</span></div></div>`;
+    return;
+  }
+  const url = `${YOONDOK_SCRIPT_URL}?action=getTodayStandardReading&crew=${encodeURIComponent(state.shift)}&_=${Date.now()}`;
+  fetch(url).then(r=>r.json()).then(data=>{
+    if(data.error) throw new Error(data.error);
+    state.yoondokToday = data;
+    renderYoondokInline();
+  }).catch(e=>{
+    el.innerHTML = `<div class="fk-panel"><div class="warn-box"><span>⚠️</span><span>윤독 현황을 불러올 수 없습니다.<br><span style="font-size:16px;color:var(--text2);">${(e&&e.message)||'Apps Script 배포 상태를 확인해주세요.'}</span></span></div></div>`;
+  });
+}
+
+function renderYoondokInline(){
+  const el = document.getElementById('yoondokInlinePanel');
+  if(!el) return;
+  const data = state.yoondokToday;
+  if(!data) return;
+
+  const members = data.members || [];
+  const doneCount = data.doneCount || 0;
+  const total = data.total || members.length;
+
+  let html = `<div class="fk-panel">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span style="font-size:22px;">📘</span>
+      <span style="font-size:21px;font-weight:700;color:var(--accent);">금일 표준 윤독 현황 — ${data.crew}조</span>
+      <button onclick="loadYoondokToday()" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;color:var(--text2);font-size:17px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔄 새로고침</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <span class="yd-summary-chip" style="background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);">✅ 실시 ${doneCount}</span>
+      <span class="yd-summary-chip" style="background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);">⏳ 미실시 ${total-doneCount}</span>
+      <span class="yd-summary-chip" style="background:rgba(245,166,35,0.08);color:var(--text2);border:1px solid var(--border);">전체 ${total}명</span>
+    </div>
+    <div>`;
+
+  members.forEach(m=>{
+    const done = m.standards && m.standards.length>0;
+    const color = done ? 'var(--green)' : 'var(--red)';
+    const detail = done ? m.standards.join(', ') : '미실시';
+    html += `<div class="yd-member-row ${done?'done':'pending'}">
+      <div class="yd-avatar" style="background:${color}">${m.name.charAt(0)}</div>
+      <div class="yd-member-name">${m.name}</div>
+      <div class="yd-member-detail ${done?'done':'pending'}">${detail}</div>
+    </div>`;
+  });
+
+  html += `</div>
+    <div style="font-size:16px;color:var(--text2);text-align:right;margin-top:6px;">기준일 ${data.dateStr||''} · 업데이트 ${data.updatedAt||''}</div>
+  </div>`;
+
+  el.innerHTML = html;
 }
 
 // ── 대시보드 ─────────────────────────────────────────────────────
