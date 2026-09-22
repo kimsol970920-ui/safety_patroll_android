@@ -1628,7 +1628,8 @@ function renderM2Tab(){
         ${isDone?'<span style="font-size:16px;font-weight:700;color:var(--green);">완료</span>':''}
       </div>
       ${!isDone?`<div id="${readerId}" style="width:100%;border-radius:10px;overflow:hidden;margin-bottom:10px;display:none;"></div>
-      <button class="btn-qr" style="margin-top:0;" onclick="startLocScan('${loc.id}','${readerId}')">📷 카메라 켜기</button>`:''}
+      <button class="btn-qr" style="margin-top:0;" onclick="startLocScan('${loc.id}','${readerId}')">📷 카메라 켜기</button>
+      <button class="btn btn-ghost" style="margin-top:8px;padding:10px;font-size:15px;" onclick="if(confirm('${loc.name} 구글폼을 이미 작성·제출하셨나요?')) completeQRAuth('${loc.id}')">✅ 폼 제출 완료 (직접 확인)</button>`:''}
     </div>`;
   }).join('');
   renderM2DoneList();
@@ -2114,15 +2115,39 @@ async function stopLocScan(locId, readerId){
 
 function onQRScanned(locId, scanned, readerId){
   stopLocScan(locId, readerId);
+
+  // 중2층 QR은 위치 코드가 아니라 구글폼 링크 자체를 인코딩하고 있으므로,
+  // formUrl을 기준으로 위치를 매칭해서 앱 안에서 폼을 바로 띄운다(페이지 이탈 없음).
   if(scanned.includes('docs.google.com/forms')){
-    window.location.href = scanned;
+    const cleanUrl = scanned.split('?')[0];
+    const matched = QR_LOCATIONS.find(l=>l.formUrl && l.formUrl.split('?')[0]===cleanUrl);
+    if(matched){
+      if(matched.id !== locId){
+        const loc = QR_LOCATIONS.find(l=>l.id===locId);
+        alert(`⚠️ 해당 위치가 아닙니다.\n${loc?loc.name:'이 위치'}의 QR코드를 스캔해주세요.`);
+        return;
+      }
+      showFormModal(matched);
+      return;
+    }
+    // 등록되지 않은 구글폼 QR이어도 앱 안에서 열어서 작성할 수 있도록 처리
+    showFormModal({id: locId, name: '구글폼', formUrl: scanned});
     return;
   }
+
   let lid=null;
   try{ lid=new URL(scanned).searchParams.get('loc'); }catch(_){}
   if(!lid) lid=scanned;
   const found=QR_LOCATIONS.find(l=>l.id===lid);
-  if(!found){ alert('⚠️ 등록되지 않은 QR코드입니다.'); return; }
+  if(!found){
+    const m2Ids = QR_LOCATIONS.filter(l=>l.floor==='중2층').map(l=>l.id);
+    if(m2Ids.includes(locId)){
+      alert('⚠️ 중2층의 위치만 인식해주세요.\n(6호기 계단, 9호기 계단, 11호기 계단)');
+    } else {
+      alert('⚠️ 등록되지 않은 QR코드입니다.');
+    }
+    return;
+  }
   if(found.id !== locId){
     alert(`⚠️ 해당 위치가 아닙니다.\n${QR_LOCATIONS.find(l=>l.id===locId)?.name||'이 위치'}의 QR코드를 스캔해주세요.`);
     return;
