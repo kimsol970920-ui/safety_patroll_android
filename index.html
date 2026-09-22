@@ -435,33 +435,15 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card-label">STEP 03 / 06</div>
     <div class="card-title">공통 안전 점검</div>
 
-    <div class="tab-wrap">
-      <button class="tab-btn active" id="tab2-checklist" onclick="switchTab2('checklist')">📋 공통 점검</button>
-      <button class="tab-btn" id="tab2-qr" onclick="switchTab2('qr')">📷 중2층 QR 인증</button>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(34,197,94,0.2);color:var(--green);border:1.5px solid var(--green);">○</div>양호</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(245,158,11,0.2);color:var(--yellow);border:1.5px solid var(--yellow);">△</div>보완</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(239,68,68,0.2);color:var(--red);border:1.5px solid var(--red);">X</div>불량</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1.5px solid #64748b;">-</div>해당없음</div>
     </div>
-
-    <div id="tab2Content-checklist">
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(34,197,94,0.2);color:var(--green);border:1.5px solid var(--green);">○</div>양호</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(245,158,11,0.2);color:var(--yellow);border:1.5px solid var(--yellow);">△</div>보완</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(239,68,68,0.2);color:var(--red);border:1.5px solid var(--red);">X</div>불량</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1.5px solid #64748b;">-</div>해당없음</div>
-      </div>
-      <div class="prog-text" id="prog2Text">0 / 13 항목 완료</div>
-      <div class="prog-wrap"><div class="prog-fill" id="prog2Bar" style="width:0%"></div></div>
-      <div id="commonList"></div>
-    </div>
-
-    <div id="tab2Content-qr" style="display:none;">
-      <div class="info-box"><span>📍</span><span>중2층 각 위치의 📷 카메라 켜기 버튼을 눌러 QR을 스캔하고 구글폼을 제출해주세요.</span></div>
-      <div id="m2LocList"></div>
-      <div style="margin-top:16px;">
-        <div class="sec-title">인증 완료 위치</div>
-        <div class="qr-badge-list" id="m2DoneList">
-          <span style="font-size:16px;color:var(--text2);">아직 인증된 위치가 없습니다.</span>
-        </div>
-      </div>
-    </div>
+    <div class="prog-text" id="prog2Text">0 / 13 항목 완료</div>
+    <div class="prog-wrap"><div class="prog-fill" id="prog2Bar" style="width:0%"></div></div>
+    <div id="commonList"></div>
 
     <button class="btn btn-ghost" onclick="goStep(1)">← 이전</button>
     <button class="btn btn-primary" id="step2Next" onclick="goStep(3)" disabled>교대조 점검 →</button>
@@ -474,37 +456,18 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     <div class="card-label">STEP 04 / 06</div>
     <div class="card-title" id="step3Title">교대조 점검</div>
 
-    <div class="tab-wrap">
-      <button class="tab-btn active" id="tab-checklist" onclick="switchTab3('checklist')">📋 교대조 점검</button>
-      <button class="tab-btn" id="tab-qr" onclick="switchTab3('qr')">📷 QR 위치 인증</button>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(34,197,94,0.2);color:var(--green);border:1.5px solid var(--green);">○</div>양호</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(245,158,11,0.2);color:var(--yellow);border:1.5px solid var(--yellow);">△</div>보완</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(239,68,68,0.2);color:var(--red);border:1.5px solid var(--red);">X</div>불량</div>
+      <div class="leg-item"><div class="leg-dot" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1.5px solid #64748b;">-</div>해당없음</div>
     </div>
+    <div class="prog-text" id="prog3Text">0 / 0 항목 완료</div>
+    <div class="prog-wrap"><div class="prog-fill" id="prog3Bar" style="width:0%"></div></div>
+    <div id="turnList"></div>
 
-    <div id="tabContent-checklist">
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(34,197,94,0.2);color:var(--green);border:1.5px solid var(--green);">○</div>양호</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(245,158,11,0.2);color:var(--yellow);border:1.5px solid var(--yellow);">△</div>보완</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(239,68,68,0.2);color:var(--red);border:1.5px solid var(--red);">X</div>불량</div>
-        <div class="leg-item"><div class="leg-dot" style="background:rgba(100,116,139,0.2);color:#94a3b8;border:1.5px solid #64748b;">-</div>해당없음</div>
-      </div>
-      <div class="prog-text" id="prog3Text">0 / 0 항목 완료</div>
-      <div class="prog-wrap"><div class="prog-fill" id="prog3Bar" style="width:0%"></div></div>
-      <div id="turnList"></div>
-
-      <div class="sec-title" style="margin-top:16px;">기타 사항</div>
-      <textarea class="ta" id="memoEtc" placeholder="기타 특이사항을 자유롭게 입력하세요..."></textarea>
-    </div>
-
-    <div id="tabContent-qr" style="display:none;">
-      <div id="step3FloorMap"></div>
-      <div class="info-box"><span>📍</span><span>오늘 점검 구역(<b id="step3QrFloorLabel"></b>)의 QR코드를 스캔해주세요.</span></div>
-      <div id="step3QrLocList"></div>
-      <div style="margin-top:16px;">
-        <div class="sec-title">인증 완료 위치</div>
-        <div class="qr-badge-list" id="step3QrDoneList">
-          <span style="font-size:16px;color:var(--text2);">아직 인증된 위치가 없습니다.</span>
-        </div>
-      </div>
-    </div>
+    <div class="sec-title" style="margin-top:16px;">기타 사항</div>
+    <textarea class="ta" id="memoEtc" placeholder="기타 특이사항을 자유롭게 입력하세요..."></textarea>
 
     <button class="btn btn-ghost" onclick="goStep(2)">← 이전</button>
     <button class="btn btn-primary" id="step3Next" onclick="goStep(4)" disabled>결과 확인 →</button>
@@ -615,14 +578,6 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="info-box"><span>✏️</span><span>지게차 번호/층/용도를 수정하거나 대수를 추가·삭제할 수 있습니다. 번호를 바꾸면 구글시트(지게차 인증 대장)의 번호도 함께 맞춰주세요.</span></div>
         <div id="adminForkliftList"></div>
         <button class="btn btn-ghost" style="margin-top:10px;" onclick="addForkliftRow()">+ 지게차 추가</button>
-      </div>
-
-      <div class="card">
-        <div class="card-label">관리 항목</div>
-        <div class="card-title">📍 QR 인증 위치 관리</div>
-        <div class="info-box"><span>✏️</span><span>층/위치명/구글폼 링크를 수정하거나 위치를 추가·삭제할 수 있습니다. ID를 바꾸거나 새 위치를 추가하면 해당 ID로 QR 스티커를 새로 제작해 현장에 부착해야 인식됩니다.</span></div>
-        <div id="adminQRLocList"></div>
-        <button class="btn btn-ghost" style="margin-top:10px;" onclick="addQRLocRow()">+ 위치 추가</button>
       </div>
 
       <div class="card">
@@ -873,7 +828,6 @@ function applyRoleUI(role){
       if(tabBtn) tabBtn.textContent = '🛠 항목 관리';
       renderAdminCommonItems();
       renderAdminForkliftList();
-      renderAdminQRLocList();
     } else {
       supEl.style.display = 'block';
       staffEl.style.display = 'none';
@@ -1447,43 +1401,6 @@ function fmtDateYMD(d){
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
-// ── 스탭사원 QR 인증 PASS 처리 ─────────────────────────────────────
-// 스탭사원이 A/B/C/D조 관리감독자의 금일 QR 위치 인증(중2층 QR 인증 +
-// 교대조 QR 위치 인증)을 대신 면제 처리할 수 있는 기능.
-// 이 기기(브라우저)에 조별/일자별로 저장되며, 같은 기기로 이후 해당 조
-// 관리감독자가 로그인하면 자동으로 QR 인증이 생략됩니다.
-function qrPassKey(crew, dateStr){ return `sv_qrpass_${crew}_${dateStr}`; }
-function getQRPassDateStr(){ return fmtDateYMD(getEffectiveShiftDate()); }
-function getQRPassInfo(crew){
-  if(!crew) return null;
-  try{
-    const raw = localStorage.getItem(qrPassKey(crew, getQRPassDateStr()));
-    return raw ? JSON.parse(raw) : null;
-  }catch(_){ return null; }
-}
-function isQRPassGranted(crew){ return !!getQRPassInfo(crew); }
-function setQRPassGranted(crew, granted){
-  try{
-    const key = qrPassKey(crew, getQRPassDateStr());
-    if(granted){
-      localStorage.setItem(key, JSON.stringify({ by: state.currentName || '스탭사원', at: new Date().toISOString() }));
-    } else {
-      localStorage.removeItem(key);
-    }
-  }catch(_){}
-}
-function toggleQRPass(crew){
-  if(!crew) return;
-  const granted = isQRPassGranted(crew);
-  if(!granted){
-    if(!confirm(`${crew}조 관리감독자의 금일 QR 위치 인증(중2층 QR 인증 + 교대조 QR 위치 인증)을 PASS 처리하시겠습니까?\n\nPASS 처리 시 해당 조 관리감독자는 QR 스캔 없이 다음 단계로 진행할 수 있습니다.`)) return;
-  } else {
-    if(!confirm(`${crew}조 QR 인증 PASS를 해제하시겠습니까?`)) return;
-  }
-  setQRPassGranted(crew, !granted);
-  if(document.getElementById('fpZoneContent')) renderStaffFieldPatrol();
-}
-
 // 특정 조가 기준일 이전 최근에 근무한 날짜를 역순으로 탐색 (휴무 중일 때 사용)
 function getRecentWorkAnchorDate(crew, fromDate){
   let d = new Date(fromDate);
@@ -1538,95 +1455,6 @@ const QR_LOCATIONS = [
   {id:'M2_11', floor:'중2층', name:'11호기 계단',
     formUrl:'https://docs.google.com/forms/d/e/1FAIpQLSfnH2bVN9GPczvCQjDhuQPEmNcj-D_jO0Mu_imcrPNq-H9-wQ/viewform'},
 ];
-
-// ── 스탭사원 관리: QR 인증 위치 수정 (이 기기에 저장, 즉시 반영) ────────
-// 주의: 위치의 id는 현장에 부착된 실물 QR 스티커에 인코딩된 값입니다.
-//   - 이름/층/구글폼 링크만 바꾸면 기존 QR 스티커를 그대로 써도 됩니다.
-//   - id를 바꾸거나 위치를 새로 추가하면, 그 id를 인코딩한 새 QR 스티커를
-//     현장에 다시 부착해야 실제로 인식됩니다.
-//   - 층별 배치도(지도) 이미지 위 핀 표시는 자동으로 갱신되지 않습니다.
-function applyQRLocationList(list){
-  QR_LOCATIONS.length = 0;
-  list.forEach(row=>{
-    const id = String(row.id||'').trim();
-    if(!id) return;
-    QR_LOCATIONS.push({
-      id, floor: row.floor||'1층', name: row.name||'',
-      formUrl: row.formUrl && row.formUrl.trim() ? row.formUrl.trim() : null
-    });
-  });
-}
-function saveQRLocationList(list){
-  try{ localStorage.setItem('sv_qrloc_overrides', JSON.stringify(list)); }catch(_){}
-  applyQRLocationList(list);
-}
-function loadQRLocationOverrides(){
-  try{
-    const raw = localStorage.getItem('sv_qrloc_overrides');
-    if(!raw) return;
-    const list = JSON.parse(raw);
-    if(Array.isArray(list) && list.length>0) applyQRLocationList(list);
-  }catch(_){}
-}
-loadQRLocationOverrides();
-
-let adminQRLocDraft = null;
-function getQRLocDraft(){
-  if(!adminQRLocDraft){
-    adminQRLocDraft = QR_LOCATIONS.map(l=>({ id:l.id, floor:l.floor, name:l.name, formUrl:l.formUrl||'' }));
-  }
-  return adminQRLocDraft;
-}
-function syncQRLocDraftFromInputs(){
-  const draft = getQRLocDraft();
-  draft.forEach((row,i)=>{
-    const idEl = document.getElementById('ql-id-'+i);
-    if(!idEl) return;
-    row.id = idEl.value;
-    row.floor = document.getElementById('ql-floor-'+i).value;
-    row.name = document.getElementById('ql-name-'+i).value;
-    row.formUrl = document.getElementById('ql-form-'+i).value;
-  });
-}
-function renderAdminQRLocList(){
-  adminQRLocDraft = null; // 탭 재진입 시 최신 저장값 기준으로 새로 시작
-  renderQRLocDraftUI(getQRLocDraft());
-}
-function renderQRLocDraftUI(draft){
-  const el = document.getElementById('adminQRLocList');
-  if(!el) return;
-  el.innerHTML = draft.map((row,idx)=>`
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <input type="text" id="ql-id-${idx}" value="${(row.id||'').replace(/"/g,'&quot;')}" placeholder="ID (예: 1F_05)" style="width:110px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 8px;color:var(--text);font-size:15px;font-family:'JetBrains Mono',monospace;">
-      <select id="ql-floor-${idx}" style="background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px;color:var(--text);font-size:15px;font-family:'Noto Sans KR',sans-serif;">
-        ${['1층','중2층','2층','3층'].map(f=>`<option value="${f}" ${row.floor===f?'selected':''}>${f}</option>`).join('')}
-      </select>
-      <input type="text" id="ql-name-${idx}" value="${(row.name||'').replace(/"/g,'&quot;')}" placeholder="위치명" style="flex:1;min-width:120px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:16px;font-family:'Noto Sans KR',sans-serif;">
-      <input type="text" id="ql-form-${idx}" value="${(row.formUrl||'').replace(/"/g,'&quot;')}" placeholder="구글폼 링크 (없으면 비워둠)" style="flex:2;min-width:160px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:15px;font-family:'Noto Sans KR',sans-serif;">
-      <button class="btn-qr" style="width:auto;margin:0;padding:8px 12px;font-size:15px;background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteQRLocRow(${idx})">삭제</button>
-    </div>
-  `).join('') + `<button class="btn-qr" style="margin-top:4px;" onclick="saveQRLocDraft()">💾 전체 저장</button>`;
-}
-function addQRLocRow(){
-  syncQRLocDraftFromInputs();
-  getQRLocDraft().push({id:'', floor:'1층', name:'', formUrl:''});
-  renderQRLocDraftUI(adminQRLocDraft);
-}
-function deleteQRLocRow(idx){
-  syncQRLocDraftFromInputs();
-  adminQRLocDraft.splice(idx,1);
-  renderQRLocDraftUI(adminQRLocDraft);
-}
-function saveQRLocDraft(){
-  syncQRLocDraftFromInputs();
-  const clean = adminQRLocDraft.filter(r=>r.id && r.id.trim() && r.name && r.name.trim());
-  const ids = clean.map(r=>r.id.trim());
-  const dup = ids.find((id,i)=>ids.indexOf(id)!==i);
-  if(dup){ alert(`중복된 위치 ID가 있습니다: ${dup}`); return; }
-  saveQRLocationList(clean.map(r=>({id:r.id.trim(), floor:r.floor, name:r.name.trim(), formUrl:(r.formUrl||'').trim()})));
-  alert('QR 인증 위치 목록이 저장되었습니다.\n(실물 QR 스티커를 새로 부착/변경해야 하는 경우, 함께 반영해주세요.)');
-  renderAdminQRLocList();
-}
 
 function getFloorForDate(turn, date) {
   const dayIdx = Math.floor(date.getTime() / 86400000) % 4;
@@ -1802,31 +1630,13 @@ function selectTurn(t){
   document.getElementById('step1Next').disabled=false;
 }
 
-function switchTab2(tab){
-  document.getElementById('tab2-checklist').classList.toggle('active', tab==='checklist');
-  document.getElementById('tab2-qr').classList.toggle('active', tab==='qr');
-  document.getElementById('tab2Content-checklist').style.display = tab==='checklist' ? 'block' : 'none';
-  document.getElementById('tab2Content-qr').style.display = tab==='qr' ? 'block' : 'none';
-  if(tab==='qr') renderM2Tab();
-  updateCommonProgress();
-}
-
-function switchTab3(tab){
-  document.getElementById('tab-checklist').classList.toggle('active', tab==='checklist');
-  document.getElementById('tab-qr').classList.toggle('active', tab==='qr');
-  document.getElementById('tabContent-checklist').style.display = tab==='checklist' ? 'block' : 'none';
-  document.getElementById('tabContent-qr').style.display = tab==='qr' ? 'block' : 'none';
-  if(tab==='qr') renderStep3QRTab();
-  checkStep3Ready();
-}
-
 function goStep(n){
   document.querySelectorAll('.step-screen').forEach(el=>el.classList.remove('active'));
   document.getElementById('step'+n).classList.add('active');
   updateStepDots(n);
   window.scrollTo(0,0);
-  if(n===2){ renderCommonList(); loadForkliftData(); renderM2Tab(); }
-  if(n===3){ try{ renderTurnList(); renderStep3QRTab(); }catch(e){ console.error('renderTurnList 오류:',e); } }
+  if(n===2){ renderCommonList(); loadForkliftData(); }
+  if(n===3){ try{ renderTurnList(); }catch(e){ console.error('renderTurnList 오류:',e); } }
   if(n===4) renderSummary();
   if(n===2||n===3) startReminder();
   if(n===4||n===5) stopReminder();
@@ -1868,12 +1678,9 @@ function updateCommonProgress(){
   const total=COMMON_ITEMS.length;
   document.getElementById('prog2Text').textContent=`${done} / ${total} 항목 완료`;
   document.getElementById('prog2Bar').style.width=(done/total*100)+'%';
-  // 체크 항목 완료 + 중2층 QR 인증(3곳) 완료 + 지게차 QR 인증(22대, 인증 또는 운휴로 전부 확인) 완료 시 다음 활성화
-  // (스탭사원이 PASS 처리한 경우 QR 인증 없이도 통과 — 지게차 인증 여부와는 무관)
-  const m2Locs = QR_LOCATIONS.filter(l=>l.floor==='중2층');
-  const m2Done = m2Locs.every(l=>state.qrFormDone.has(l.id)) || isQRPassGranted(state.currentCrew);
+  // 체크 항목 완료 + 지게차 QR 인증(전체 대수를 인증 또는 운휴로 확인) 완료 시 다음 활성화
   const forkliftOk = checkForkliftReady();
-  document.getElementById('step2Next').disabled = !(done >= total && m2Done && forkliftOk);
+  document.getElementById('step2Next').disabled = !(done >= total && forkliftOk);
 }
 
 // ── 지게차 QR 충족 여부 확인 (인증 + 운휴 합집합이 전체 대수를 커버해야 함) ──
@@ -1881,97 +1688,6 @@ function checkForkliftReady(){
   const certified = state.forkliftCertified;
   const inactive  = state.forkliftInactive;
   return FORKLIFT_ALL.every(id => certified.has(id) || inactive.has(id));
-}
-
-// ── 중2층 QR 인증 탭 ──────────────────────────────────────────────
-function renderM2Tab(){
-  const el = document.getElementById('m2LocList');
-  if(!el) return;
-  const m2Locs = QR_LOCATIONS.filter(l=>l.floor==='중2층');
-  const passInfo = getQRPassInfo(state.currentCrew);
-  const passBanner = passInfo
-    ? `<div class="info-box" style="background:rgba(34,197,94,0.12);border-color:var(--green);"><span>✅</span><span>스탭사원(${passInfo.by})이 금일 QR 인증을 PASS 처리했습니다. QR 스캔 없이 다음 단계로 진행할 수 있습니다.</span></div>`
-    : '';
-  el.innerHTML = passBanner + m2Locs.map(loc=>{
-    const isDone = state.qrFormDone.has(loc.id);
-    const readerId = 's2reader-'+loc.id;
-    return `<div style="background:var(--surface2);border:1px solid ${isDone?'var(--green)':'var(--border)'};border-radius:12px;padding:14px 16px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:${isDone?'0':'10px'};">
-        <span style="font-size:22px;">${isDone?'✅':'📷'}</span>
-        <div style="flex:1;">
-          <div style="font-size:19px;font-weight:700;color:${isDone?'var(--green)':'var(--text)'};">${loc.name}</div>
-          <div style="font-size:15px;color:${isDone?'var(--green)':'var(--text2)'};">${isDone?'구글폼 제출 완료':'QR 스캔 후 구글폼 작성'}</div>
-        </div>
-        ${isDone?'<span style="font-size:16px;font-weight:700;color:var(--green);">완료</span>':''}
-      </div>
-      ${!isDone?`<div id="${readerId}" style="width:100%;border-radius:10px;overflow:hidden;margin-bottom:10px;display:none;"></div>
-      <button class="btn-qr" style="margin-top:0;" onclick="startLocScan('${loc.id}','${readerId}')">📷 카메라 켜기</button>
-      <button class="btn btn-ghost" style="margin-top:8px;padding:10px;font-size:15px;" onclick="if(confirm('${loc.name} 구글폼을 이미 작성·제출하셨나요?')) completeQRAuth('${loc.id}')">✅ 폼 제출 완료 (직접 확인)</button>`:''}
-    </div>`;
-  }).join('');
-  renderM2DoneList();
-}
-
-function renderM2DoneList(){
-  const el = document.getElementById('m2DoneList');
-  if(!el) return;
-  const m2Locs = QR_LOCATIONS.filter(l=>l.floor==='중2층');
-  const doneList = m2Locs.filter(l=>state.qrFormDone.has(l.id));
-  el.innerHTML = doneList.length===0
-    ? '<span style="font-size:16px;color:var(--text2);">아직 인증된 위치가 없습니다.</span>'
-    : doneList.map(l=>`<div class="qr-badge">✓ ${l.name}</div>`).join('');
-}
-
-// ── QR 위치 인증 탭 (교대조 점검) ─────────────────────────────────
-function renderStep3QRTab(){
-  const el = document.getElementById('step3QrLocList');
-  if(!el) return;
-  const floor = state.todayFloor;
-  const labelEl = document.getElementById('step3QrFloorLabel');
-  if(labelEl) labelEl.textContent = floor || '미정';
-  const mapEl = document.getElementById('step3FloorMap');
-  const validFloor = floor==='1층' || floor==='2층' || floor==='3층';
-
-  if(mapEl) mapEl.innerHTML = validFloor ? (FLOOR_MAP_BLOCKS[floor]||'') : '';
-
-  if(!validFloor){
-    el.innerHTML = `<div class="info-box"><span>ℹ️</span><span>오늘은 지게차 일상 점검 담당일입니다 — QR 위치 패트롤이 없습니다.</span></div>`;
-    const doneEl = document.getElementById('step3QrDoneList');
-    if(doneEl) doneEl.innerHTML = '<span style="font-size:16px;color:var(--text2);">해당 없음</span>';
-    return;
-  }
-
-  const locs = getFloorLocations(floor);
-  const passInfo = getQRPassInfo(state.currentCrew);
-  const passBanner = passInfo
-    ? `<div class="info-box" style="background:rgba(34,197,94,0.12);border-color:var(--green);"><span>✅</span><span>스탭사원(${passInfo.by})이 금일 QR 인증을 PASS 처리했습니다. QR 스캔 없이 다음 단계로 진행할 수 있습니다.</span></div>`
-    : '';
-  el.innerHTML = passBanner + locs.map(loc=>{
-    const done = state.qrDone.has(loc.id);
-    const readerId = 's3reader-'+loc.id;
-    return `<div style="background:var(--surface2);border:1px solid ${done?'var(--green)':'var(--border)'};border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">${done?'✅':'⬜'}</span>
-        <div style="flex:1;font-size:18px;color:${done?'var(--green)':'var(--text)'};">${loc.name}</div>
-      </div>
-      ${!done?`<div id="${readerId}" style="width:100%;border-radius:10px;overflow:hidden;margin:8px 0;display:none;"></div>
-      <button class="btn-qr" style="margin-top:6px;" onclick="startLocScan('${loc.id}','${readerId}')">📷 QR 스캔</button>`:''}
-    </div>`;
-  }).join('');
-  renderStep3QRDoneList();
-}
-
-function renderStep3QRDoneList(){
-  const el = document.getElementById('step3QrDoneList');
-  if(!el) return;
-  const floor = state.todayFloor;
-  const validFloor = floor==='1층' || floor==='2층' || floor==='3층';
-  if(!validFloor){ el.innerHTML = '<span style="font-size:16px;color:var(--text2);">해당 없음</span>'; return; }
-  const locs = getFloorLocations(floor);
-  const doneList = locs.filter(l=>state.qrDone.has(l.id));
-  el.innerHTML = doneList.length===0
-    ? '<span style="font-size:16px;color:var(--text2);">아직 인증된 위치가 없습니다.</span>'
-    : doneList.map(l=>`<div class="qr-badge">✓ ${l.name}</div>`).join('');
 }
 
 // ── 지게차 QR 인증 현황 인라인 패널 (c09 아래) ────────────────────
@@ -2257,15 +1973,8 @@ function renderStaffFieldPatrol(){
     const crewLabel = (crew && crew !== '-') ? `${crew}조` : '휴무';
     const floor = getTodayFloor(turn);
     const validFloor = floor === '1층' || floor === '2층' || floor === '3층';
-    const hasCrew = !!(crew && crew !== '-');
-    const passInfo = hasCrew ? getQRPassInfo(crew) : null;
-
     html += `<div class="r5-day-card">
-      <div class="r5-day-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-        <span>${turn} · ${crewLabel} · 담당구역: ${floor}</span>
-        ${hasCrew?`<button class="btn-qr" style="width:auto;margin:0;padding:7px 14px;font-size:15px;background:${passInfo?'var(--green)':'#8b5cf6'};" onclick="toggleQRPass('${crew}')">${passInfo?'✅ PASS 처리됨 (해제)':'🔓 QR 인증 PASS 처리'}</button>`:''}
-      </div>
-      ${passInfo?`<div class="info-box" style="margin-top:8px;background:rgba(34,197,94,0.12);border-color:var(--green);"><span>✅</span><span>${crew}조 QR 인증이 스탭사원(${passInfo.by})의 승인으로 면제되었습니다.</span></div>`:''}`;
+      <div class="r5-day-title">${turn} · ${crewLabel} · 담당구역: ${floor}</div>`;
 
     if(validFloor){
       html += FLOOR_MAP_BLOCKS[floor] || '';
@@ -2326,16 +2035,11 @@ function updateStep3Progress(){
 function checkStep3Ready(){
   const items=TURN_ITEMS[state.turn]||[];
   const turnDone=items.every(i=>state.checks[i.id]);
-  const floor = state.todayFloor;
-  const validFloor = floor==='1층' || floor==='2층' || floor==='3층';
-  const todayLocs = validFloor ? getFloorLocations(floor) : [];
-  // 스탭사원이 PASS 처리한 경우 QR 인증 없이도 통과
-  const qrReady = !validFloor || todayLocs.every(l=>state.qrDone.has(l.id)) || isQRPassGranted(state.currentCrew);
   const btn=document.getElementById('step3Next');
-  if(btn) btn.disabled=!(turnDone && qrReady);
+  if(btn) btn.disabled=!turnDone;
 }
 
-// ── QR 관련 ──────────────────────────────────────────────────────
+// ── QR 관련 (🚩 현장 패트롤 탭에서 사용) ───────────────────────────
 function completeQRAuth(locId){
   const loc=QR_LOCATIONS.find(l=>l.id===locId);
   state.qrDone.add(locId);
@@ -2343,10 +2047,6 @@ function completeQRAuth(locId){
   if(state.currentRole !== 'staff' && fp5DayCache.crew){
     renderSupervisorFieldPatrol5Day();
   }
-  checkStep3Ready();
-  updateCommonProgress();
-  if(document.getElementById('m2LocList')) renderM2Tab();
-  if(document.getElementById('step3QrLocList')) renderStep3QRTab();
   const toast=document.createElement('div');
   toast.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:12px 24px;border-radius:20px;font-size:22px;font-weight:700;z-index:400;font-family:"Noto Sans KR",sans-serif;white-space:nowrap;';
   toast.textContent=`✅ ${loc?loc.name:'위치'} 인증 완료!`;
