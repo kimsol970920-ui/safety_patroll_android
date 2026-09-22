@@ -1678,16 +1678,8 @@ function updateCommonProgress(){
   const total=COMMON_ITEMS.length;
   document.getElementById('prog2Text').textContent=`${done} / ${total} 항목 완료`;
   document.getElementById('prog2Bar').style.width=(done/total*100)+'%';
-  // 체크 항목 완료 + 지게차 QR 인증(전체 대수를 인증 또는 운휴로 확인) 완료 시 다음 활성화
-  const forkliftOk = checkForkliftReady();
-  document.getElementById('step2Next').disabled = !(done >= total && forkliftOk);
-}
-
-// ── 지게차 QR 충족 여부 확인 (인증 + 운휴 합집합이 전체 대수를 커버해야 함) ──
-function checkForkliftReady(){
-  const certified = state.forkliftCertified;
-  const inactive  = state.forkliftInactive;
-  return FORKLIFT_ALL.every(id => certified.has(id) || inactive.has(id));
+  // 체크 항목만 완료하면 다음 활성화 (지게차 인증 여부는 더 이상 막지 않음 — 현황판은 계속 표시)
+  document.getElementById('step2Next').disabled = !(done >= total);
 }
 
 // ── 지게차 QR 인증 현황 인라인 패널 (c09 아래) ────────────────────
