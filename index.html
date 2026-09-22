@@ -2676,24 +2676,56 @@ function renderAdminCrewRoster(crew, members){
     return;
   }
   el.innerHTML = members.map((name,idx)=>`
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       <span style="font-size:15px;color:var(--text2);flex-shrink:0;min-width:70px;">기존: ${name}</span>
-      <input type="text" id="ydRename-${idx}" value="${name.replace(/"/g,'&quot;')}" style="flex:1;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:16px;font-family:'Noto Sans KR',sans-serif;">
-      <button class="btn-qr" style="width:auto;margin:0;padding:8px 14px;font-size:15px;" onclick="saveMemberRename('${name.replace(/'/g,"\\'")}', document.getElementById('ydRename-${idx}').value)">저장</button>
+      <input type="text" id="ydRename-${idx}" value="${name.replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:16px;font-family:'Noto Sans KR',sans-serif;">
+      <button class="btn-qr" id="ydSaveBtn-${idx}" style="width:auto;margin:0;padding:8px 14px;font-size:15px;" onclick="saveMemberRename('${name.replace(/'/g,"\\'")}', document.getElementById('ydRename-${idx}').value, ${idx})">저장</button>
+      <button class="btn-qr" id="ydDelBtn-${idx}" style="width:auto;margin:0;padding:8px 14px;font-size:15px;background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteMemberRow('${name.replace(/'/g,"\\'")}', ${idx})">삭제</button>
     </div>
   `).join('');
 }
 
-function saveMemberRename(oldName, newName){
+function setRosterRowBusy(idx, busy){
+  const saveBtn = document.getElementById('ydSaveBtn-'+idx);
+  const delBtn = document.getElementById('ydDelBtn-'+idx);
+  const input = document.getElementById('ydRename-'+idx);
+  [saveBtn, delBtn].forEach(b=>{ if(b) b.disabled = busy; });
+  if(input) input.disabled = busy;
+  if(saveBtn) saveBtn.textContent = busy ? '처리 중...' : '저장';
+}
+
+function saveMemberRename(oldName, newName, idx){
   newName = (newName||'').trim();
   if(!newName || newName===oldName) return;
   if(!confirm(`"${oldName}" → "${newName}"(으)로 바꾸시겠습니까?\n윤독 스프레드시트의 관련 기록(과거 제출분 포함)이 모두 새 이름으로 바뀝니다.`)) return;
+  setRosterRowBusy(idx, true);
   fetch(YOONDOK_SCRIPT_URL, {
-    method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
     body: JSON.stringify({action:'renameMember', oldName, newName})
-  }).catch(()=>{});
-  alert('수정 요청을 보냈습니다. 잠시 후 아래 목록을 다시 불러와 확인해주세요.');
-  setTimeout(()=>{ if(adminYoondokCrew) loadAdminCrewRoster(adminYoondokCrew); }, 1500);
+  }).then(r=>r.json()).then(data=>{
+    if(data.error) throw new Error(data.error);
+    alert(`이름이 변경되었습니다.\n(시트 ${data.changedNameSheetRows}행 · 명단 이력 ${data.changedRosterCells}건 반영)`);
+    if(adminYoondokCrew) loadAdminCrewRoster(adminYoondokCrew);
+  }).catch(e=>{
+    alert(`이름 변경에 실패했습니다.\n${(e&&e.message)||'Apps Script 배포 상태를 확인해주세요.'}`);
+    setRosterRowBusy(idx, false);
+  });
+}
+
+function deleteMemberRow(name, idx){
+  if(!confirm(`"${name}"님을 윤독 명단/현황에서 삭제하시겠습니까?\n해당 인원의 표준·사고사례 진도율 기록이 함께 삭제되며, 되돌릴 수 없습니다.\n(퇴사·전배 등으로 더 이상 추적하지 않을 때만 사용하세요)`)) return;
+  setRosterRowBusy(idx, true);
+  fetch(YOONDOK_SCRIPT_URL, {
+    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({action:'deleteMember', name})
+  }).then(r=>r.json()).then(data=>{
+    if(data.error) throw new Error(data.error);
+    alert(`"${name}"님이 삭제되었습니다. (${data.deletedRows}행 삭제됨)`);
+    if(adminYoondokCrew) loadAdminCrewRoster(adminYoondokCrew);
+  }).catch(e=>{
+    alert(`삭제에 실패했습니다.\n${(e&&e.message)||'Apps Script 배포 상태를 확인해주세요.'}`);
+    setRosterRowBusy(idx, false);
+  });
 }
 
 // ── 대시보드 ─────────────────────────────────────────────────────
