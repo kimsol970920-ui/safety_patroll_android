@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>관리감독자 업무 점검</title>
 <link rel="manifest" href="/manifest.json">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="theme-color" content="#f5a623">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2980,6 +2983,43 @@ async function initPWA(){
   }
 }
 window.addEventListener('load',initPWA);
+
+// ── 새 버전 자동 반영 ─────────────────────────────────────────────
+// 휴대폰 브라우저가 예전 index.html을 저장해 두고 보여주는 문제 방지.
+// 서버의 최신 index.html을 캐시 없이 받아 APP_VERSION을 비교하고,
+// 다르면 새 버전으로 다시 엽니다. (코드 수정 시 APP_VERSION 값을 꼭 올릴 것)
+const APP_VERSION = '2026-10-14.2';
+async function checkAppUpdate(){
+  try{
+    const res = await fetch(location.pathname + '?vcheck=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return;
+    const m = (await res.text()).match(/const APP_VERSION = '([^']+)'/);
+    if(!m || m[1] === APP_VERSION) return;
+    const latest = m[1];
+    // 같은 버전으로 반복 새로고침되는 것 방지
+    if(sessionStorage.getItem('app_reloaded_for') === latest) return;
+    // 점검 작성 중이면 강제로 새로고침하지 않고 안내만 표시
+    if(state.turn && !state.submitted){ showUpdateBanner(latest); return; }
+    reloadToVersion(latest);
+  }catch(e){ /* 오프라인 등은 무시 */ }
+}
+function reloadToVersion(latest){
+  sessionStorage.setItem('app_reloaded_for', latest);
+  location.replace(location.pathname + '?v=' + encodeURIComponent(latest) + location.hash);
+}
+function showUpdateBanner(latest){
+  if(document.getElementById('appUpdateBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'appUpdateBanner';
+  b.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:var(--surface2);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:18px;color:var(--text);box-shadow:0 4px 16px rgba(0,0,0,0.4);';
+  b.innerHTML = `<span style="flex:1;">🔔 새 버전이 있습니다. 점검 제출 후 새로고침해 주세요.</span>
+    <button style="background:var(--accent);color:#0a0c0f;border:none;border-radius:8px;padding:7px 12px;font-weight:700;font-size:17px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">새로고침</button>`;
+  b.querySelector('button').onclick = ()=>reloadToVersion(latest);
+  document.body.appendChild(b);
+}
+window.addEventListener('load', checkAppUpdate);
+// 앱을 잠시 나갔다가 다시 돌아왔을 때도 확인
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') checkAppUpdate(); });
 </script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </body>
