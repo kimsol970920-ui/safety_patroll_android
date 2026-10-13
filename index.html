@@ -2317,7 +2317,8 @@ function renderYoondokInline(){
 
 // 금일 윤독 현황 패널 HTML (관리감독자 c14 패널 / 스탭사원 카드 공용)
 function buildYoondokPanelHtml(data, refreshCall){
-  const members = data.members || [];
+  // 이름순(가나다) 정렬
+  const members = (data.members || []).slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ko'));
   const doneCount = data.doneCount || 0;
   const total = data.total || members.length;
 
@@ -2988,7 +2989,7 @@ window.addEventListener('load',initPWA);
 // 휴대폰 브라우저가 예전 index.html을 저장해 두고 보여주는 문제 방지.
 // 서버의 최신 index.html을 캐시 없이 받아 APP_VERSION을 비교하고,
 // 다르면 새 버전으로 다시 엽니다. (코드 수정 시 APP_VERSION 값을 꼭 올릴 것)
-const APP_VERSION = '2026-10-14.2';
+const APP_VERSION = '2026-10-14.3';
 async function checkAppUpdate(){
   try{
     const res = await fetch(location.pathname + '?vcheck=' + Date.now(), {cache:'no-store'});
