@@ -2063,15 +2063,17 @@ async function fetchForkliftCert(crew, dObj){
 
   const certified = new Set(), detail = {}, unknown = new Set();
   let errors = [], gotAny = false;
+  const debugs = [];
   for(const shiftName of shiftNames){
     for(const dt of dates){
       const dateParam = `${dt.getFullYear()}. ${dt.getMonth()+1}. ${dt.getDate()}`;
-      const url = `${APPS_SCRIPT_URL}?action=getForklift&date=${encodeURIComponent(dateParam)}&shift=${encodeURIComponent(shiftName)}&_=${Date.now()}`;
+      const url = `${APPS_SCRIPT_URL}?action=getForklift&date=${encodeURIComponent(dateParam)}&shift=${encodeURIComponent(shiftName)}&debug=1&_=${Date.now()}`;
       try{
         const res = await fetch(url);
         const data = await res.json();
         if(data.error) throw new Error(data.error);
         gotAny = true;
+        if(shiftName === crew+'조') debugs.push(data.debug || null);
         (data.certified || []).forEach(v=>{
           const id = normalizeForkliftId(v);
           if(FORKLIFT_ALL.includes(id)) certified.add(id); else unknown.add(String(v));
@@ -2083,8 +2085,25 @@ async function fetchForkliftCert(crew, dObj){
     }
     if(certified.size > 0) break; // 조 이름으로 찾았으면 교대 이름 조회는 생략
   }
+  // 인증이 하나도 없을 때 원인 안내 문구 (Apps Script가 진단 정보를 돌려줄 때)
+  let diagnosis = null;
+  if(gotAny && certified.size === 0){
+    if(debugs.length && debugs.every(d=>!d)){
+      diagnosis = 'Apps Script(Code_통합본.gs) 새 버전이 아직 배포되지 않은 것 같습니다. 배포 → 배포 관리 → 새 버전으로 배포해주세요.';
+    } else {
+      const rowsOnDate = debugs.reduce((n,d)=>n+((d&&d.rowsOnDate)||0),0);
+      const crews = {}, depts = {};
+      debugs.forEach(d=>{ if(!d) return;
+        Object.entries(d.crewsOnDate||{}).forEach(([k,v])=>crews[k]=(crews[k]||0)+v);
+        Object.entries(d.deptsOnDate||{}).forEach(([k,v])=>depts[k]=(depts[k]||0)+v); });
+      const fmt = o => Object.entries(o).map(([k,v])=>`${k} ${v}건`).join(', ') || '없음';
+      diagnosis = rowsOnDate === 0
+        ? '지게차 시트(Raw)에 이 날짜 응답이 한 건도 없습니다. 점검 응답이 다른 폼(MS Forms 등)으로 들어가고 있는지 확인해주세요.'
+        : `이 날짜 응답 ${rowsOnDate}건 중 ${crew}조·정련 응답이 없습니다. (근무조: ${fmt(crews)} / 부서: ${fmt(depts)})`;
+    }
+  }
   return {
-    certified, detail, unknown: [...unknown],
+    certified, detail, unknown: [...unknown], diagnosis,
     error: gotAny ? null : (errors[0] || '지게차 데이터를 불러올 수 없습니다.'),
   };
 }
@@ -2109,7 +2128,7 @@ async function loadForkliftTab(){
   fkTab.loading = true; fkTab.error = null; fkTab.unknown = [];
   renderForkliftTab();
   const r = await fetchForkliftCert(fkTab.crew, dObj);
-  fkTab.certified = r.certified; fkTab.detail = r.detail; fkTab.unknown = r.unknown; fkTab.error = r.error;
+  fkTab.certified = r.certified; fkTab.detail = r.detail; fkTab.unknown = r.unknown; fkTab.error = r.error; fkTab.diagnosis = r.diagnosis;
   fkTab.loading = false;
   // 오늘 본인 조라면 점검일지 쪽 상태도 같이 갱신
   if(fkTab.crew===state.shift && ymd===fmtDateYMD(getEffectiveShiftDate())){
@@ -2132,6 +2151,9 @@ function renderForkliftTab(){
     && fkTab.date===fmtDateYMD(getEffectiveShiftDate());
   let html = '';
   if(fkTab.error) html += `<div class="warn-box"><span>⚠️</span><span>지게차 인증 기록을 불러오지 못해 모두 미인증으로 보입니다.<br><span style="font-size:16px;">${escapeHtml(fkTab.error)}</span></span></div>`;
+  if(fkTab.diagnosis){
+    html += `<div class="warn-box"><span>🔎</span><span>인증 기록이 없습니다.<br><span style="font-size:16px;">${escapeHtml(fkTab.diagnosis)}</span></span></div>`;
+  }
   if(fkTab.unknown && fkTab.unknown.length){
     html += `<div class="info-box"><span>ℹ️</span><span>앱 지게차 목록에 없는 번호로 인증된 기록: <b>${fkTab.unknown.map(escapeHtml).join(', ')}</b><br><span style="font-size:16px;">항목 관리 → 지게차 번호 관리에서 번호를 추가하면 현황에 표시됩니다.</span></span></div>`;
   }
