@@ -22,11 +22,52 @@
   --accent:#f5a623;--accent2:#e8431a;--green:#22c55e;--red:#ef4444;
   --yellow:#f59e0b;--blue:#3b82f6;--text:#e8edf2;--text2:#8fa0b0;
   --border:#2a3340;--glow:rgba(245,166,35,0.15);
+  --header-bg:linear-gradient(135deg,#0f1318,#161c26);
 }
+/* ── 밝은 화면 모드 (화면 우측 상단 ☀️/🌙 버튼으로 전환) ── */
+:root[data-theme="light"]{
+  --bg:#f3f5f8;--surface:#ffffff;--surface2:#f2f5f9;--surface3:#e7ecf2;
+  --accent:#d97706;--accent2:#dc4a1f;--green:#16a34a;--red:#dc2626;
+  --yellow:#b45309;--blue:#2563eb;--text:#18202b;--text2:#5a6878;
+  --border:#d3dbe5;--glow:rgba(217,119,6,0.15);
+  --header-bg:linear-gradient(135deg,#ffffff,#f6f8fb);
+}
+:root[data-theme="light"] .info-box{color:#92400e;}
+:root[data-theme="light"] .warn-box,
+:root[data-theme="light"] .block-box .b-sub,
+:root[data-theme="light"] .fk-parts,
+:root[data-theme="light"] .yd-member-detail.pending,
+:root[data-theme="light"] .rp-del-btn,
+:root[data-theme="light"] .submit-chip.pending{color:#b91c1c;}
+:root[data-theme="light"] .tag-common,
+:root[data-theme="light"] .role-badge.supervisor,
+:root[data-theme="light"] .r5-zone-name{color:#1d4ed8;}
+:root[data-theme="light"] .tag-turn{color:#b45309;}
+:root[data-theme="light"] .tag-qr,
+:root[data-theme="light"] .btn-qr,
+:root[data-theme="light"] .role-badge.staff{color:#6d28d9;}
+:root[data-theme="light"] .chip-na,
+:root[data-theme="light"] .cBtn.na.active,
+:root[data-theme="light"] .r5s-status-badge.pending{color:#475569;}
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .landing-card{box-shadow:0 1px 3px rgba(15,23,42,0.06);}
+/* 자바스크립트로 그리는 화면의 연한 글자색도 밝은 배경에서 잘 보이게 보정 */
+:root[data-theme="light"] [style*="color:#fca5a5"]{color:#b91c1c !important;}
+:root[data-theme="light"] [style*="color:#60a5fa"]{color:#1d4ed8 !important;}
+:root[data-theme="light"] [style*="color:#a78bfa"],
+:root[data-theme="light"] [style*="color:#c4b5fd"]{color:#6d28d9 !important;}
+:root[data-theme="light"] [style*="color:#fcd34d"]{color:#92400e !important;}
+:root[data-theme="light"] [style*="color:#fbbf24"]{color:#b45309 !important;}
+:root[data-theme="light"] [style*="color:#94a3b8"]{color:#475569 !important;}
+:root[data-theme="light"] [style*="color:#86efac"]{color:#15803d !important;}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text2);font-size:16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.theme-toggle-icon{padding:4px 8px;font-size:17px;}
+.theme-toggle-float{position:fixed;top:12px;right:12px;z-index:150;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;}
 
-.header{background:linear-gradient(135deg,#0f1318,#161c26);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+.header{background:var(--header-bg);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
 .header-title{font-size:23px;font-weight:700;}
 .header-sub{font-size:17px;color:var(--text2);font-family:'JetBrains Mono',monospace;}
 .shift-badge{margin-left:auto;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:18px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
@@ -221,9 +262,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .login-input:focus{border-color:var(--accent);}
 
 /* 관리감독자 시스템 상단바 & 탭 */
-.sv-topbar{background:linear-gradient(135deg,#0f1318,#161c26);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:10px;}
-.sv-topbar-title{font-size:19px;font-weight:700;}
-.sv-topbar-user{font-size:17px;color:var(--text2);display:flex;align-items:center;gap:10px;flex:none;white-space:nowrap;}
+.sv-topbar{background:var(--header-bg);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:10px;}
+.sv-topbar-title{font-size:19px;font-weight:700;flex:1 1 auto;min-width:8.5em;}
+.sv-topbar-user{font-size:17px;color:var(--text2);display:flex;align-items:center;gap:8px;flex:0 1 auto;flex-wrap:wrap;justify-content:flex-end;}
 .sv-logout-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text2);font-size:16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
 .sv-logout-btn:hover{border-color:var(--red);color:var(--red);}
 
@@ -254,6 +295,21 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 /* 3R5S / 위험성평가 공통 테이블 */
 .r5-day-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
 .r5-day-title{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
+/* 현장 패트롤 QR 위치 인증 */
+.fp-summary{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px;}
+.fp-loc{padding:10px 12px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;margin-bottom:7px;}
+.fp-loc.done{border-color:var(--green);}
+.fp-loc-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.fp-loc-name{flex:1;min-width:120px;font-size:19px;font-weight:600;color:var(--text);}
+.fp-status{display:inline-block;padding:3px 10px;border-radius:999px;font-size:15px;font-weight:700;white-space:nowrap;}
+.fp-status.done{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.4);}
+.fp-status.pending{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.35);}
+.fp-sub{font-size:14px;color:var(--text2);margin-top:4px;}
+.fp-map details{margin:2px 0 10px;}
+.fp-map summary{cursor:pointer;font-size:17px;font-weight:600;color:var(--text2);padding:6px 0;}
+.fp-day-chip{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;font-size:14px;font-weight:700;vertical-align:middle;font-family:'Noto Sans KR',sans-serif;}
+.fp-day-chip.done{background:rgba(34,197,94,0.15);color:var(--green);}
+.fp-day-chip.pending{background:rgba(100,116,139,0.15);color:var(--text2);}
 .r5-zone-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
 .r5-zone-row:last-child{border-bottom:none;}
 .r5-zone-name{flex:none;width:88px;font-size:17px;font-weight:700;color:#60a5fa;}
@@ -280,10 +336,19 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 .risk-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--accent);color:var(--accent);padding:10px 18px;border-radius:20px;font-size:17px;font-weight:700;z-index:300;opacity:0;pointer-events:none;transition:opacity 0.3s;}
 .risk-toast.show{opacity:1;}
 </style>
+<script>
+// 화면 모드: 저장된 선택이 없으면 밝은 화면이 기본값
+(function(){
+  var t='light';
+  try{ t = localStorage.getItem('sv_theme') || 'light'; }catch(_){}
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
 </head>
 <body>
 
 <!-- ══════ 랜딩 페이지 ══════ -->
+<button class="theme-toggle theme-toggle-float" id="themeToggleFloat" onclick="toggleTheme()">🌙 어둡게</button>
 <div id="page-landing" class="page active">
   <div class="landing-wrap">
     <div class="landing-header">
@@ -346,7 +411,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 
   <div class="sv-topbar">
     <div class="sv-topbar-title">관리감독자 안전 관리 시스템</div>
-    <div class="sv-topbar-user"><span id="svUserName">-</span> <button class="sv-logout-btn" onclick="logoutSupervisor()">로그아웃</button></div>
+    <div class="sv-topbar-user"><button class="theme-toggle theme-toggle-icon" onclick="toggleTheme()" title="화면 밝기 전환" aria-label="화면 밝기 전환">🌙</button><span id="svUserName">-</span> <button class="sv-logout-btn" onclick="logoutSupervisor()">로그아웃</button></div>
   </div>
 
   <div class="sv-tabbar">
@@ -741,7 +806,34 @@ let riskLoaded = false;
 function showPage(id){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
+  // 관리감독자 화면은 상단바에 전환 버튼이 있으므로 떠 있는 버튼은 숨김
+  const floatBtn = document.getElementById('themeToggleFloat');
+  if(floatBtn) floatBtn.style.display = (id==='supervisor') ? 'none' : '';
   window.scrollTo(0,0);
+}
+
+// 상단바 높이가 바뀌어도(좁은 화면에서 두 줄) 탭바가 바로 아래에 붙도록
+function syncSvTabbarTop(){
+  const bar = document.querySelector('.sv-topbar');
+  const tabs = document.querySelector('.sv-tabbar');
+  if(bar && tabs && bar.offsetHeight) tabs.style.top = bar.offsetHeight + 'px';
+}
+window.addEventListener('resize', syncSvTabbarTop);
+
+// ── 화면 모드 전환 (밝은 화면 ↔ 어두운 화면) ─────────────────────
+function getTheme(){
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+}
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  try{ localStorage.setItem('sv_theme', theme); }catch(_){}
+  const label = theme === 'dark' ? '☀️ 밝게' : '🌙 어둡게';
+  document.querySelectorAll('.theme-toggle').forEach(b=>{
+    b.textContent = b.classList.contains('theme-toggle-icon') ? label.split(' ')[0] : label;
+  });
+}
+function toggleTheme(){
+  applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
 }
 
 function openYoondokForm(){ window.open(YOONDOK_FORM_URL, '_blank'); }
@@ -818,6 +910,7 @@ function enterSupervisorSystem(role, crew, name){
     ? `${name} <span class="role-badge staff">STAFF</span>`
     : `${crew}조 · ${name} <span class="role-badge supervisor">관리감독자</span>`;
   showPage('supervisor');
+  syncSvTabbarTop();
   switchSvTab('patrol');
   const pendingLoc = sessionStorage.getItem('sv_pending_loc');
   if(pendingLoc){
@@ -1591,6 +1684,7 @@ const locScanners = {};
 
 // ── 초기화 ───────────────────────────────────────────────────────
 window.onload = () => {
+  applyTheme(getTheme()); // 저장된 화면 모드에 맞춰 버튼 문구 맞춤
   initAppOpenTimer(); // 오늘 이 화면이 처음 열린 시각 기록 (로그인 여부와 무관, 출근 시점 기준)
   updateStepDots(0);
   state.gpsOk = true;
@@ -1872,11 +1966,58 @@ function loadFieldPatrolTab(){
 }
 
 // ── 관리감독자용: 근무 1~5일차 QR 패트롤 현황 (근무시간 무관, 항상 표시) ──
+// 위치별 상태
+//  - QR 인증 완료 : 그 위치 QR을 스캔했거나(이 기기 기록 또는 제출된 점검일지의 위치 QR 목록),
+//                   지난 날짜에 관리감독자 안전점검을 제출한 경우
+//  - QR 제출 완료 : 오늘 QR은 스캔하지 않았지만 관리감독자 안전점검을 제출한 경우 (초기 운영용 임시 처리)
+//  - QR 미인증    : 위 어느 쪽도 아닌 경우
 let fp5DayCache = { crew:null, days:null, rows:null };
+
+// 이 기기에서 스캔한 위치 QR 기록 / 점검일지 제출 기록 (새로고침해도 유지)
+function fpReadLog(key){
+  try{ return JSON.parse(localStorage.getItem(key) || '{}') || {}; }catch(_){ return {}; }
+}
+function fpWriteLog(key, obj){
+  // 최근 60일 기록만 보관
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
+  const cutStr = fmtDateYMD(cutoff);
+  Object.keys(obj).forEach(k=>{ if((k.split('|')[1]||'') < cutStr) delete obj[k]; });
+  try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(_){}
+}
+function fpLogKey(crew, dateStr){ return `${crew}|${dateStr}`; }
+
+function fpRecordScan(crew, dateStr, locId){
+  if(!crew) return;
+  const log = fpReadLog('sv_qr_scan_log');
+  const k = fpLogKey(crew, dateStr);
+  const list = new Set(log[k] || []);
+  list.add(locId);
+  log[k] = [...list];
+  fpWriteLog('sv_qr_scan_log', log);
+}
+function fpGetScans(crew, dateStr){
+  return new Set(fpReadLog('sv_qr_scan_log')[fpLogKey(crew, dateStr)] || []);
+}
+function fpRecordSubmit(crew, dateStr){
+  if(!crew) return;
+  const log = fpReadLog('sv_patrol_submit_log');
+  log[fpLogKey(crew, dateStr)] = true;
+  fpWriteLog('sv_patrol_submit_log', log);
+}
+function fpHasLocalSubmit(crew, dateStr){
+  return !!fpReadLog('sv_patrol_submit_log')[fpLogKey(crew, dateStr)];
+}
+
+// 오늘 이 기기에서 스캔했던 위치를 다시 불러와 점검일지 제출 시 함께 전송되게 함
+function restoreTodayQrScans(crew){
+  if(!crew) return;
+  fpGetScans(crew, fmtDateYMD(getEffectiveShiftDate())).forEach(id=>state.qrDone.add(id));
+}
 
 async function loadSupervisorFieldPatrol5Day(crew){
   const zoneEl = document.getElementById('fpZoneContent');
   zoneEl.innerHTML = `<div style="text-align:center;color:var(--text2);padding:20px;">불러오는 중...</div>`;
+  restoreTodayQrScans(crew);
 
   const day1 = getCycleAnchorDate(crew);
   const days = [];
@@ -1888,11 +2029,12 @@ async function loadSupervisorFieldPatrol5Day(crew){
   let rows = [];
   try{
     const startStr = fmtDateYMD(days[0]);
-    const endStr = fmtDateYMD(days[4]);
+    const endD = new Date(days[4]); endD.setDate(endD.getDate()+1); // 야간조 자정 이후 제출분 포함
+    const endStr = fmtDateYMD(endD);
     const url = `${APPS_SCRIPT_URL}?action=getData&start=${startStr}&end=${endStr}`;
     const res = await fetch(url);
     const data = await res.json();
-    rows = (data.rows||[]).filter(r=>r.shift && r.shift.replace('조','').trim().toUpperCase()===crew);
+    rows = (data.rows||[]).filter(r=>r.shift && String(r.shift).replace('조','').trim().toUpperCase()===crew);
   }catch(e){
     console.warn('현장 패트롤 이력 조회 실패:', e);
   }
@@ -1901,58 +2043,110 @@ async function loadSupervisorFieldPatrol5Day(crew){
   renderSupervisorFieldPatrol5Day();
 }
 
+// 해당 근무일에 제출된 점검일지 행 (야간조는 다음날 0~6시 제출분도 포함)
+function fpRowsForDay(rows, d, turn){
+  const dateStr = fmtDateYMD(d);
+  const next = new Date(d); next.setDate(next.getDate()+1);
+  const nextStr = fmtDateYMD(next);
+  return (rows||[]).filter(r=>{
+    const rd = normalizeDateStr(r.date);
+    if(rd === dateStr) return true;
+    if(turn === '야간' && rd === nextStr && String(r.turn||'').includes('야간')){
+      const hm = String(r.timestamp||'').match(/\s(\d{1,2}):/);
+      return !hm || parseInt(hm[1],10) < 6;
+    }
+    return false;
+  });
+}
+
 function renderSupervisorFieldPatrol5Day(){
   const { crew, days, rows } = fp5DayCache;
   const zoneEl = document.getElementById('fpZoneContent');
   if(!zoneEl || !crew || !days) return;
 
   const todayStr = fmtDateYMD(getEffectiveShiftDate());
-
-  let html = `<div class="info-box"><span>📍</span><span>${crew}조 · 근무 1~5일차 현장 패트롤 QR 인증 현황</span></div>`;
+  let todayDone = 0, todayTotal = 0;
+  let body = '';
 
   days.forEach((d, idx)=>{
     const dayNum = idx+1;
     const dateStr = fmtDateYMD(d);
     const isToday = dateStr === todayStr;
+    const isFuture = dateStr > todayStr;
     const turn = getCrewTurnToday(crew, d);
 
-    html += `<div class="r5-day-card">`;
+    body += `<div class="r5-day-card"${isToday?' style="border-color:var(--accent);"':''}>`;
     if(!turn){
-      html += `<div class="r5-day-title">${dayNum}일차 (${dateStr}) · 휴무</div></div>`;
+      body += `<div class="r5-day-title">${dayNum}일차 (${dateStr}) · 휴무</div></div>`;
       return;
     }
 
     const floor = getFloorForDate(turn, d);
     const validFloor = floor==='1층' || floor==='2층' || floor==='3층';
-    html += `<div class="r5-day-title">${dayNum}일차 (${dateStr})${isToday?' · 오늘':''} · ${turn} · 담당구역: ${floor}</div>`;
+    const dayRows = fpRowsForDay(rows, d, turn);
+    const submitted = dayRows.length > 0 || fpHasLocalSubmit(crew, dateStr) || (isToday && state.submitted && state.shift===crew);
+    const dayChip = isFuture ? ''
+      : submitted ? `<span class="fp-day-chip done">안전점검 제출 완료</span>`
+      : `<span class="fp-day-chip pending">안전점검 미제출</span>`;
+
+    body += `<div class="r5-day-title">${dayNum}일차 (${dateStr})${isToday?' · 오늘':''} · ${turn} · 담당구역: ${floor}${dayChip}</div>`;
 
     if(!validFloor){
-      html += `<div style="padding:8px 0;color:var(--text2);font-size:17px;">지게차 일상 점검일 (QR 패트롤 없음)</div></div>`;
+      body += `<div style="padding:8px 0;color:var(--text2);font-size:17px;">지게차 일상 점검일 (QR 패트롤 없음)</div></div>`;
       return;
     }
 
-    const dayRows = rows.filter(r=>normalizeDateStr(r.date)===dateStr);
+    // 지도: 오늘은 펼쳐서, 다른 날은 접어서 표시
+    const mapHtml = FLOOR_MAP_BLOCKS[floor] || '';
+    if(mapHtml){
+      body += `<div class="fp-map"><details${isToday?' open':''}><summary>🗺️ ${floor} QR 위치 지도 ${isToday?'접기':'보기'}</summary>${mapHtml}</details></div>`;
+    }
+
     const qrLocsStr = dayRows.map(r=>r.qrLocations||'').join(' / ');
+    const localScans = fpGetScans(crew, dateStr);
     const locs = getFloorLocations(floor);
 
-    html += locs.map(l=>{
-      let done = qrLocsStr.includes(`${l.floor}-${l.name}`);
-      if(isToday) done = done || state.qrDone.has(l.id);
-      const canScan = isToday && !done;
-      return `<div style="padding:9px 11px;background:var(--surface3);border:1px solid ${done?'var(--green)':'var(--border)'};border-radius:9px;margin-bottom:6px;">
-        <div style="display:flex;align-items:center;gap:9px;">
+    body += locs.map(l=>{
+      const scanned = qrLocsStr.includes(`${l.floor}-${l.name}`) || localScans.has(l.id) || (isToday && state.qrDone.has(l.id));
+      let label, cls, sub = '';
+      if(scanned){
+        label = 'QR 인증 완료'; cls = 'done';
+      } else if(submitted && isToday){
+        label = 'QR 제출 완료'; cls = 'done'; sub = '관리감독자 안전점검 제출로 처리';
+      } else if(submitted){
+        label = 'QR 인증 완료'; cls = 'done'; sub = '관리감독자 안전점검 제출';
+      } else if(isFuture){
+        label = '예정'; cls = 'pending';
+      } else {
+        label = 'QR 미인증'; cls = 'pending';
+      }
+      const done = cls === 'done';
+      if(isToday){ todayTotal++; if(done) todayDone++; }
+      const canScan = isToday && !scanned;
+      return `<div class="fp-loc${done?' done':''}">
+        <div class="fp-loc-row">
           <span style="font-size:22px;">${done?'✅':'⬜'}</span>
-          <span style="flex:1;font-size:18px;color:${done?'var(--green)':'var(--text)'};">${l.name}</span>
+          <span class="fp-loc-name">${l.name}</span>
+          <span class="fp-status ${cls}">${label}</span>
           ${canScan?`<button class="btn-qr" style="width:auto;margin:0;padding:6px 12px;font-size:16px;" onclick="startLocScan('${l.id}')">📷 QR 스캔</button>`:''}
         </div>
+        ${sub?`<div class="fp-sub">${sub}</div>`:''}
         ${canScan?`<div id="reader-${l.id}" style="display:none;margin-top:8px;"></div>`:''}
       </div>`;
     }).join('');
 
-    html += `</div>`;
+    body += `</div>`;
   });
 
-  zoneEl.innerHTML = html;
+  let head = `<div class="info-box"><span>📍</span><span>${crew}조 · 근무 1~5일차 현장 패트롤 QR 인증 현황<br><span style="font-size:17px;">위치에 도착하면 <b>📷 QR 스캔</b>을 눌러 현장 QR을 비춰주세요.</span></span></div>`;
+  if(todayTotal > 0){
+    head += `<div class="fp-summary">
+      <span class="fp-status done">오늘 인증 ${todayDone} / ${todayTotal}</span>
+      ${todayTotal-todayDone>0?`<span class="fp-status pending">QR 미인증 ${todayTotal-todayDone}</span>`:''}
+    </div>`;
+  }
+
+  zoneEl.innerHTML = head + body;
 }
 
 // ── 스탭사원용: 금일 오전/오후/야간 전체 패트롤 구역 ──────────────
@@ -2049,6 +2243,9 @@ function completeQRAuth(locId){
   const loc=QR_LOCATIONS.find(l=>l.id===locId);
   state.qrDone.add(locId);
   if(loc && loc.formUrl) state.qrFormDone.add(locId);
+  if(state.currentRole !== 'staff' && state.currentCrew){
+    fpRecordScan(state.currentCrew, fmtDateYMD(getEffectiveShiftDate()), locId);
+  }
   if(state.currentRole !== 'staff' && fp5DayCache.crew){
     renderSupervisorFieldPatrol5Day();
   }
@@ -2150,18 +2347,18 @@ function showFormModal(loc){
   modal.id = 'formIframeModal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:#fff;display:flex;flex-direction:column;';
   modal.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#111418;border-bottom:1px solid #2a3340;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
       <div style="flex:1;">
         <div style="font-size:18px;color:#a78bfa;font-weight:700;letter-spacing:1px;">${loc.floor||''} QR 인증</div>
-        <div style="font-size:23px;font-weight:700;color:#fff;">📍 ${loc.name}</div>
+        <div style="font-size:23px;font-weight:700;color:var(--text);">📍 ${loc.name}</div>
       </div>
     </div>
-    <div style="background:#1e2530;border-bottom:1px solid #2a3340;padding:10px 16px;font-size:20px;color:#c4b5fd;line-height:1.6;flex-shrink:0;">
-      ① 아래 폼을 작성하고 <strong style="color:#fff;">제출하기</strong>를 누르세요<br>
+    <div style="background:var(--surface3);border-bottom:1px solid var(--border);padding:10px 16px;font-size:20px;color:#c4b5fd;line-height:1.6;flex-shrink:0;">
+      ① 아래 폼을 작성하고 <strong style="color:var(--text);">제출하기</strong>를 누르세요<br>
       ② 제출 완료 후 <strong style="color:#22c55e;">✅ 제출 완료 — 돌아가기</strong> 버튼을 누르세요
     </div>
     <iframe src="${loc.formUrl}" style="flex:1;border:none;width:100%;background:#fff;" allow="camera"></iframe>
-    <div style="padding:12px 16px;background:#111418;border-top:1px solid #2a3340;flex-shrink:0;">
+    <div style="padding:12px 16px;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;">
       <button onclick="closeFormModal('${loc.id}')"
         style="width:100%;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:12px;padding:15px;color:#fff;font-size:24px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
         ✅ 제출 완료 — 돌아가기
@@ -2178,6 +2375,7 @@ function closeFormModal(locId){
 
 // ── 요약 렌더링 ──────────────────────────────────────────────────
 function renderSummary(){
+  if(state.currentRole !== 'staff') restoreTodayQrScans(state.shift); // 현장 패트롤 탭에서 스캔한 위치 포함
   state.memo=document.getElementById('memoEtc').value;
   const now = new Date();
   const pad = n=>String(n).padStart(2,'0');
@@ -2237,6 +2435,7 @@ function renderSummary(){
 
 // ── 제출 ────────────────────────────────────────────────────────
 async function submitResult(){
+  if(state.currentRole !== 'staff') restoreTodayQrScans(state.shift);
   const allItems=[...COMMON_ITEMS,...(TURN_ITEMS[state.turn]||[])];
   const ngItems=allItems.filter(i=>state.checks[i.id]==='ng'||state.checks[i.id]==='partial');
   ngItems.forEach(item=>{const el=document.getElementById('ng_'+item.id);if(el)state.ngMemos[item.id]=el.value;});
@@ -2272,6 +2471,9 @@ async function submitResult(){
 
   overlay.classList.remove('show');
   state.submitted=true; stopReminder();
+  // 현장 패트롤 탭: 오늘 위치 QR을 "QR 제출 완료"로 표시
+  fpRecordSubmit(state.shift, fmtDateYMD(getEffectiveShiftDate()));
+  if(state.currentRole !== 'staff' && fp5DayCache.crew) renderSupervisorFieldPatrol5Day();
   showResult(okC,partC,ngC,naC,true);
 }
 
