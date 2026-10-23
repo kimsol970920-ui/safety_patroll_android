@@ -2315,12 +2315,57 @@ function renderYoondokInline(){
   el.innerHTML = buildYoondokPanelHtml(data, 'loadYoondokToday()');
 }
 
+// ── 윤독 명단 인원 변동 (휴직·파견 등) ─────────────────────────────
+// 여기 있는 인원은 명단에는 표시하되 윤독 대상 인원(전체/미실시/평균)에서 제외
+const MEMBER_STATUS = {
+  '홍완석': '휴직',
+  '정대희': '휴직',
+  '김제진': '미국 파견'
+};
+// 시트 명단에 아직 없는 신규 인원 (윤독 응답이 쌓이면 시트에서 자동으로 잡힘)
+const EXTRA_MEMBERS = {
+  'B': ['오경균']
+};
+
+function getMemberStatus(name){
+  return MEMBER_STATUS[String(name||'').trim()] || '';
+}
+
+function statusBadgeHtml(status){
+  return `<span style="display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:14px;font-weight:600;background:rgba(148,163,184,0.18);color:var(--text2);border:1px solid var(--border);">${status}</span>`;
+}
+
+// 백엔드 명단에 신규 인원 추가 + 휴직·파견 표시. makeEmpty(name)로 빈 기록 생성
+function applyRosterChanges(crew, members, makeEmpty){
+  const list = (members || []).slice();
+  const names = new Set(list.map(m => String((m && m.name) || m || '').trim()));
+  (EXTRA_MEMBERS[crew] || []).forEach(name => {
+    if(!names.has(name)) list.push(makeEmpty(name));
+  });
+  return list;
+}
+
+// 금일 윤독 데이터 보정: 신규 인원 추가, 휴직·파견자는 집계에서 제외
+function adjustTodayReading(data){
+  if(!data) return data;
+  const crew = String(data.crew || '').replace('조','');
+  const members = applyRosterChanges(crew, data.members, name => ({ name, standards: [] }));
+  const active = members.filter(m => !getMemberStatus(m.name));
+  const doneCount = active.filter(m => m.standards && m.standards.length > 0).length;
+  return Object.assign({}, data, { members, doneCount, total: active.length });
+}
+
 // 금일 윤독 현황 패널 HTML (관리감독자 c14 패널 / 스탭사원 카드 공용)
-function buildYoondokPanelHtml(data, refreshCall){
-  // 이름순(가나다) 정렬
-  const members = (data.members || []).slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ko'));
+function buildYoondokPanelHtml(rawData, refreshCall){
+  const data = adjustTodayReading(rawData);
+  // 이름순(가나다) 정렬, 휴직·파견자는 맨 아래
+  const members = (data.members || []).slice().sort((a,b)=>{
+    const sa = getMemberStatus(a.name) ? 1 : 0, sb = getMemberStatus(b.name) ? 1 : 0;
+    if(sa !== sb) return sa - sb;
+    return String(a.name||'').localeCompare(String(b.name||''),'ko');
+  });
   const doneCount = data.doneCount || 0;
-  const total = data.total || members.length;
+  const total = data.total || 0;
 
   let html = `<div class="fk-panel">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
@@ -2336,6 +2381,15 @@ function buildYoondokPanelHtml(data, refreshCall){
     <div>`;
 
   members.forEach(m=>{
+    const status = getMemberStatus(m.name);
+    if(status){
+      html += `<div class="yd-member-row" style="opacity:0.55;">
+      <div class="yd-avatar" style="background:#94a3b8">${m.name.charAt(0)}</div>
+      <div class="yd-member-name">${m.name}${statusBadgeHtml(status)}</div>
+      <div class="yd-member-detail">윤독 대상 제외</div>
+    </div>`;
+      return;
+    }
     const done = m.standards && m.standards.length>0;
     const color = done ? 'var(--green)' : 'var(--red)';
     const detail = done ? m.standards.join(', ') : '미실시';
@@ -2394,11 +2448,10 @@ function renderStaffYoondok(){
 
   sel.innerHTML = ['A','B','C','D'].map(crew=>{
     const turn = getCrewTurnToday(crew) || '휴무';
-    const d = staffYoondok.data[crew];
+    const d = adjustTodayReading(staffYoondok.data[crew]);
     let stat = '…';
     if(d){
-      const total = d.total || (d.members||[]).length;
-      stat = `${d.doneCount||0}/${total}`;
+      stat = `${d.doneCount||0}/${d.total||0}`;
     } else if(staffYoondok.error[crew]) stat = '오류';
     return `<div class="opt-btn${staffYoondok.crew===crew?' selected':''}" onclick="selectStaffYoondokCrew('${crew}')" style="padding:9px 4px;line-height:1.4;">
       <div>${crew}조</div>
@@ -2435,7 +2488,7 @@ function loadAdminCrewRoster(crew){
   const url = `${YOONDOK_SCRIPT_URL}?action=getCrewRoster&crew=${encodeURIComponent(crew)}&_=${Date.now()}`;
   fetch(url).then(r=>r.json()).then(data=>{
     if(data.error) throw new Error(data.error);
-    renderAdminCrewRoster(crew, data.members||[]);
+    renderAdminCrewRoster(crew, applyRosterChanges(crew, data.members||[], name => name));
   }).catch(e=>{
     el.innerHTML = `<div class="warn-box"><span>⚠️</span><span>명단을 불러올 수 없습니다.<br><span style="font-size:16px;color:var(--text2);">${(e&&e.message)||'Apps Script 배포 상태를 확인해주세요.'}</span></span></div>`;
   });
@@ -2449,8 +2502,8 @@ function renderAdminCrewRoster(crew, members){
     return;
   }
   el.innerHTML = members.map((name,idx)=>`
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:15px;color:var(--text2);flex-shrink:0;min-width:70px;">기존: ${name}</span>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;${getMemberStatus(name)?'opacity:0.6;':''}">
+      <span style="font-size:15px;color:var(--text2);flex-shrink:0;min-width:70px;">기존: ${name}${getMemberStatus(name)?statusBadgeHtml(getMemberStatus(name)):''}</span>
       <input type="text" id="ydRename-${idx}" value="${name.replace(/"/g,'&quot;')}" style="flex:1;min-width:100px;background:var(--surface3);border:1px solid var(--border);border-radius:7px;padding:8px 10px;color:var(--text);font-size:16px;font-family:'Noto Sans KR',sans-serif;">
       <button class="btn-qr" id="ydSaveBtn-${idx}" style="width:auto;margin:0;padding:8px 14px;font-size:15px;" onclick="saveMemberRename('${name.replace(/'/g,"\\'")}', document.getElementById('ydRename-${idx}').value, ${idx})">저장</button>
       <button class="btn-qr" id="ydDelBtn-${idx}" style="width:auto;margin:0;padding:8px 14px;font-size:15px;background:linear-gradient(135deg,#ef4444,#dc2626);" onclick="deleteMemberRow('${name.replace(/'/g,"\\'")}', ${idx})">삭제</button>
@@ -2743,7 +2796,10 @@ async function loadYoondokDashboardPeriod(){
 function renderYoondokPeriodDashboard(data, crew, start, end){
   const el = document.getElementById('dashYoondokByPerson');
   if(!el) return;
-  const members = data.members || [];
+  const allMembers = applyRosterChanges(crew, data.members, name => ({ name, standardsRead: 0, accidentsRead: 0 }));
+  // 휴직·파견자는 평균에서 빼고 맨 아래에 표시
+  const members = allMembers.filter(m => !getMemberStatus(m.name));
+  const inactiveMembers = allMembers.filter(m => getMemberStatus(m.name));
   if(members.length===0){
     el.innerHTML = `<div style="color:var(--text2);padding:12px;background:var(--surface2);border-radius:10px;">데이터 없음</div>`;
     return;
@@ -2751,9 +2807,9 @@ function renderYoondokPeriodDashboard(data, crew, start, end){
 
   // 총 표준/사고사례 개수: 백엔드가 안 주면 개인 최대값으로 보수적으로 추정
   const totalStandards = data.totalStandards
-    || Math.max(1, ...members.map(m=>toCount(m.standardsRead)));
+    || Math.max(1, ...allMembers.map(m=>toCount(m.standardsRead)));
   const totalAccidents = data.totalAccidents
-    || Math.max(1, ...members.map(m=>toCount(m.accidentsRead)));
+    || Math.max(1, ...allMembers.map(m=>toCount(m.accidentsRead)));
 
   const avgStdPct = Math.round(members.reduce((s,m)=>s+calcPct(toCount(m.standardsRead), totalStandards),0)/members.length);
   const avgAccPct = Math.round(members.reduce((s,m)=>s+calcPct(toCount(m.accidentsRead), totalAccidents),0)/members.length);
@@ -2772,6 +2828,13 @@ function renderYoondokPeriodDashboard(data, crew, start, end){
       <div class="period-member-name">${m.name}</div>
       ${progressRow('표준', stdRead, totalStandards, 'linear-gradient(90deg,#3b82f6,#60a5fa)')}
       ${progressRow('사고사례', accRead, totalAccidents, 'linear-gradient(90deg,var(--accent2),var(--accent))')}
+    </div>`;
+  });
+
+  inactiveMembers.forEach(m=>{
+    html += `<div class="period-member-card" style="opacity:0.55;">
+      <div class="period-member-name">${m.name}${statusBadgeHtml(getMemberStatus(m.name))}</div>
+      <div style="font-size:15px;color:var(--text2);">윤독 대상 제외</div>
     </div>`;
   });
 
