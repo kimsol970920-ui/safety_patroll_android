@@ -681,6 +681,11 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
         <div class="card-label">현장 패트롤</div>
         <div class="card-title">QR 위치 인증</div>
 
+        <button class="btn-qr" id="fpScanAnyBtn" onclick="startAnyLocScan()" style="margin:0 0 6px;">📷 QR 스캔하기</button>
+        <button class="btn btn-ghost" id="fpScanAnyStop" onclick="stopAnyLocScan()" style="display:none;margin:0 0 6px;">✕ 스캔 닫기</button>
+        <div id="reader-any" style="display:none;margin:0 0 12px;"></div>
+        <div style="font-size:15px;color:var(--text2);margin-bottom:12px;">위치 QR을 비추면 어느 위치인지 자동으로 인식해 인증합니다.</div>
+
         <div id="fpNoZone" style="display:none;">
           <div class="block-box">
             <div class="b-icon">🚫</div>
@@ -952,6 +957,7 @@ function logoutSupervisor(){
 }
 
 function switchSvTab(tab){
+  if(tab!=='fieldpatrol' && Object.keys(locScanners).length) stopQRScan(); // 다른 탭으로 가면 카메라 끄기
   document.querySelectorAll('.sv-tab').forEach(el=>el.classList.remove('active'));
   const btn = document.getElementById('svtab-btn-'+tab);
   if(btn) btn.classList.add('active');
@@ -2293,7 +2299,8 @@ async function stopLocScan(locId, readerId){
 }
 
 function onQRScanned(locId, scanned, readerId){
-  stopLocScan(locId, readerId);
+  if(readerId==='reader-any') stopAnyLocScan();
+  else stopLocScan(locId, readerId);
 
   // 중2층 QR은 위치 코드가 아니라 구글폼 링크 자체를 인코딩하고 있으므로,
   // formUrl을 기준으로 위치를 매칭해서 앱 안에서 폼을 바로 띄운다(페이지 이탈 없음).
@@ -2301,7 +2308,7 @@ function onQRScanned(locId, scanned, readerId){
     const cleanUrl = scanned.split('?')[0];
     const matched = QR_LOCATIONS.find(l=>l.formUrl && l.formUrl.split('?')[0]===cleanUrl);
     if(matched){
-      if(matched.id !== locId){
+      if(locId && matched.id !== locId){
         const loc = QR_LOCATIONS.find(l=>l.id===locId);
         alert(`⚠️ 해당 위치가 아닙니다.\n${loc?loc.name:'이 위치'}의 QR코드를 스캔해주세요.`);
         return;
@@ -2310,7 +2317,7 @@ function onQRScanned(locId, scanned, readerId){
       return;
     }
     // 등록되지 않은 구글폼 QR이어도 앱 안에서 열어서 작성할 수 있도록 처리
-    showFormModal({id: locId, name: '구글폼', formUrl: scanned});
+    showFormModal({id: locId || '', name: '구글폼', formUrl: scanned});
     return;
   }
 
@@ -2320,14 +2327,14 @@ function onQRScanned(locId, scanned, readerId){
   const found=QR_LOCATIONS.find(l=>l.id===lid);
   if(!found){
     const m2Ids = QR_LOCATIONS.filter(l=>l.floor==='중2층').map(l=>l.id);
-    if(m2Ids.includes(locId)){
+    if(locId && m2Ids.includes(locId)){
       alert('⚠️ 중2층의 위치만 인식해주세요.\n(6호기 계단, 9호기 계단, 11호기 계단)');
     } else {
       alert('⚠️ 등록되지 않은 QR코드입니다.');
     }
     return;
   }
-  if(found.id !== locId){
+  if(locId && found.id !== locId){
     alert(`⚠️ 해당 위치가 아닙니다.\n${QR_LOCATIONS.find(l=>l.id===locId)?.name||'이 위치'}의 QR코드를 스캔해주세요.`);
     return;
   }
@@ -2335,8 +2342,25 @@ function onQRScanned(locId, scanned, readerId){
   else completeQRAuth(found.id);
 }
 
+// 위치를 고르지 않고 바로 스캔 → 찍힌 QR로 위치를 자동 판별
+async function startAnyLocScan(){
+  document.getElementById('fpScanAnyBtn').style.display='none';
+  document.getElementById('fpScanAnyStop').style.display='block';
+  await startLocScan(null, 'reader-any');
+  if(!locScanners['reader-any']) stopAnyLocScan();
+}
+async function stopAnyLocScan(){
+  await stopLocScanByReaderId('reader-any');
+  const b=document.getElementById('fpScanAnyBtn'), x=document.getElementById('fpScanAnyStop');
+  if(b) b.style.display='block';
+  if(x) x.style.display='none';
+}
+
 function stopQRScan(){
   for(const key in locScanners) stopLocScanByReaderId(key);
+  const b=document.getElementById('fpScanAnyBtn'), x=document.getElementById('fpScanAnyStop');
+  if(b) b.style.display='block';
+  if(x) x.style.display='none';
 }
 
 function showFormModal(loc){
