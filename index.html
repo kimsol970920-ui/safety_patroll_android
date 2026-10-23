@@ -193,6 +193,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
 /* 지게차 인라인 패널 */
 .fk-panel{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:4px;margin-bottom:8px;}
 .fk-floor-label{font-size:17px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.rp-add-form{background:var(--surface2);border:1.5px solid var(--accent);border-radius:12px;padding:12px;margin:4px 0 10px;display:flex;flex-direction:column;gap:8px;}
+.rp-add-title{font-size:17px;font-weight:700;color:var(--accent);}
+.rp-add-btns{display:grid;grid-template-columns:2fr 1fr;gap:8px;}
 .fk-card{display:flex;align-items:flex-start;gap:8px;background:var(--surface3);border-radius:9px;padding:9px 12px;margin-bottom:5px;border:1px solid var(--border);}
 .fk-card.cert{border-color:rgba(34,197,94,0.35);}
 .fk-card.ng{border-color:rgba(239,68,68,0.4);}
@@ -417,6 +420,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
   <div class="sv-tabbar">
     <button class="sv-tab active" id="svtab-btn-patrol" onclick="switchSvTab('patrol')">📋 점검일지</button>
     <button class="sv-tab" id="svtab-btn-fieldpatrol" onclick="switchSvTab('fieldpatrol')">🚩 현장 패트롤</button>
+    <button class="sv-tab" id="svtab-btn-forklift" onclick="switchSvTab('forklift')">🚜 지게차 점검</button>
     <button class="sv-tab" id="svtab-btn-risk" onclick="switchSvTab('risk')">⚠️ 위험성평가</button>
     <button class="sv-tab" id="svtab-btn-3r5s" onclick="switchSvTab('3r5s')">🧹 3R5S</button>
     <button class="sv-tab" id="svtab-btn-incident" onclick="switchSvTab('incident')">🚨 사고 현황</button>
@@ -699,6 +703,26 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
     </div>
   </div>
 
+  <div id="sv-content-forklift" class="sv-content">
+    <div class="main">
+      <div class="card">
+        <div class="card-label">지게차 일상점검</div>
+        <div class="card-title">지게차 일상점검 진행 현황</div>
+        <div class="sec-title" style="margin-top:0;">근무조</div>
+        <div class="opt-grid c4" id="fkTabCrewSelector">
+          <div class="opt-btn" data-crew="A" onclick="selectFkTabCrew('A')">A조</div>
+          <div class="opt-btn" data-crew="B" onclick="selectFkTabCrew('B')">B조</div>
+          <div class="opt-btn" data-crew="C" onclick="selectFkTabCrew('C')">C조</div>
+          <div class="opt-btn" data-crew="D" onclick="selectFkTabCrew('D')">D조</div>
+        </div>
+        <div class="sec-title">날짜</div>
+        <input type="date" id="fkTabDate" onchange="loadForkliftTab()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:20px;margin-bottom:10px;">
+        <div id="fkTabInfo" style="font-size:16px;color:var(--text2);margin-bottom:10px;"></div>
+        <div id="fkTabPanel"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="sv-content-risk" class="sv-content">
     <div class="main">
       <div class="card">
@@ -715,7 +739,16 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
               <tbody id="regularTableBody"></tbody>
             </table>
           </div>
-          <button class="btn btn-ghost staff-only" style="margin-top:0;" onclick="addRegularRow()">+ 항목 추가</button>
+          <div id="regularAddForm" class="rp-add-form" style="display:none;">
+            <div class="rp-add-title">새 개선 항목</div>
+            <input class="rp-input" id="newRegContent" placeholder="개선 항목 (예: 3호기 투입구 안전커버 설치)">
+            <input class="rp-input" id="newRegSchedule" placeholder="일정 (예: 2026.11)">
+            <div class="rp-add-btns">
+              <button class="btn btn-primary" style="margin:0;" onclick="saveNewRegular()">💾 저장</button>
+              <button class="btn btn-ghost" style="margin:0;" onclick="toggleRiskAddForm('regular', false)">취소</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost staff-only" id="regularAddBtn" style="margin-top:0;" onclick="toggleRiskAddForm('regular', true)">+ 항목 추가</button>
 
           <div class="rp-section-title">2. 2026년 수시위험성평가 진행 상황</div>
           <div class="rp-table-wrap">
@@ -729,7 +762,19 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-seri
               <tbody id="adhocTableBody"></tbody>
             </table>
           </div>
-          <button class="btn btn-ghost staff-only" style="margin-top:0;" onclick="addAdhocRow()">+ 항목 추가</button>
+          <div id="adhocAddForm" class="rp-add-form" style="display:none;">
+            <div class="rp-add-title">새 수시위험성평가 항목</div>
+            <input class="rp-input" id="newAdhocTitle" placeholder="진행 항목 (예: 4호기 Mixer O/H)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <input class="rp-input" id="newAdhocStart" placeholder="공사 시작일 (예: 2026.11.01)">
+              <input class="rp-input" id="newAdhocEnd" placeholder="공사 마무리일 (예: 2026.12.15)">
+            </div>
+            <div class="rp-add-btns">
+              <button class="btn btn-primary" style="margin:0;" onclick="saveNewAdhoc()">💾 저장</button>
+              <button class="btn btn-ghost" style="margin:0;" onclick="toggleRiskAddForm('adhoc', false)">취소</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost staff-only" id="adhocAddBtn" style="margin-top:0;" onclick="toggleRiskAddForm('adhoc', true)">+ 항목 추가</button>
           <div class="info-box staff-only block" style="margin-top:10px;"><span>✏️</span><span>항목/날짜는 입력 후 자동 저장되고, A~D 칸의 제출/미제출 배지를 눌러 상태를 변경할 수 있습니다.</span></div>
 
         </div>
@@ -982,6 +1027,7 @@ function switchSvTab(tab){
     if(tab==='3r5s') renderR5S();
     if(tab==='risk') loadRiskData();
     if(tab==='fieldpatrol') loadFieldPatrolTab();
+    if(tab==='forklift') openForkliftTab();
   }
   window.scrollTo(0,0);
 }
@@ -1221,6 +1267,7 @@ function loadRiskData(){
     contentEl.style.display = 'block';
     renderRegularTable();
     renderAdhocTable();
+    checkRiskPendingAdd();
   }).catch(e=>{
     loadingEl.style.display = 'block';
     loadingEl.innerHTML = `<div class="warn-box"><span>⚠️</span><span>위험성평가 데이터를 불러올 수 없습니다.<br><span style="font-size:16px;color:var(--text2);">${(e&&e.message)||'Apps Script 배포 상태를 확인해주세요.'}</span></span></div>`;
@@ -1257,11 +1304,57 @@ function renderRegularTable(){
     </tr>`).join('');
 }
 
-async function addRegularRow(){
-  await riskAction({ action:'addRegular' });
-  showRiskToast('💾 추가됨');
-  loadRiskData();
+// ── 항목 추가: 입력 폼에서 내용을 받아 시트에 저장 ──
+function toggleRiskAddForm(kind, open){
+  const form = document.getElementById(kind+'AddForm');
+  const btn = document.getElementById(kind+'AddBtn');
+  if(!form) return;
+  form.style.display = open ? 'flex' : 'none';
+  if(btn) btn.style.display = open ? 'none' : '';
+  if(open){
+    form.querySelectorAll('input').forEach(i=>i.value='');
+    const first = form.querySelector('input'); if(first) first.focus();
+  }
 }
+
+// 방금 추가한 항목이 시트에서 다시 불러와졌는지 확인
+let riskPendingAdd = null;
+function checkRiskPendingAdd(){
+  if(!riskPendingAdd) return;
+  const { kind, text } = riskPendingAdd;
+  riskPendingAdd = null;
+  const list = kind==='regular' ? riskData.regular : riskData.adhoc;
+  const key = kind==='regular' ? 'content' : 'title';
+  if(!list.some(r=>String(r[key]||'').trim()===text)){
+    alert(`"${text}" 항목이 구글시트에 저장되지 않았습니다.\n잠시 후 다시 시도하거나, Apps Script 배포 상태를 확인해주세요.`);
+  }
+}
+
+// 새 행이 들어갈 시트 행 번호 추정 (기존 마지막 행 다음 줄, 비어있으면 헤더 다음 줄)
+function nextRiskRowIndex(list){
+  const idx = (list||[]).map(r=>Number(r.rowIndex)).filter(n=>n>0);
+  return idx.length ? Math.max(...idx)+1 : 2;
+}
+
+async function saveNewRegular(){
+  const content = document.getElementById('newRegContent').value.trim();
+  const schedule = document.getElementById('newRegSchedule').value.trim();
+  if(!content){ alert('개선 항목을 입력해주세요.'); return; }
+  const rowIndex = nextRiskRowIndex(riskData.regular);
+  // 화면에 바로 표시
+  riskData.regular.push({ rowIndex, content, schedule });
+  renderRegularTable();
+  toggleRiskAddForm('regular', false);
+  // 시트 저장: 행 추가 요청에 내용을 함께 보내고, 내용이 비어 들어가는 경우를 대비해 각 칸도 저장
+  await riskAction({ action:'addRegular', content, schedule });
+  await riskAction({ action:'updateRegular', rowIndex, field:'content', value:content });
+  if(schedule) await riskAction({ action:'updateRegular', rowIndex, field:'schedule', value:schedule });
+  showRiskToast('💾 추가됨');
+  riskPendingAdd = { kind:'regular', text:content };
+  setTimeout(loadRiskData, 1500);
+}
+
+async function addRegularRow(){ toggleRiskAddForm('regular', true); }
 
 function updateRegularField(rowIndex, field, value){
   const row = riskData.regular.find(r=>r.rowIndex===rowIndex);
@@ -1295,11 +1388,26 @@ function renderAdhocTable(){
     </tr>`).join('');
 }
 
-async function addAdhocRow(){
-  await riskAction({ action:'addAdhoc' });
+async function saveNewAdhoc(){
+  const title = document.getElementById('newAdhocTitle').value.trim();
+  const startDate = document.getElementById('newAdhocStart').value.trim();
+  const endDate = document.getElementById('newAdhocEnd').value.trim();
+  if(!title){ alert('진행 항목을 입력해주세요.'); return; }
+  const rowIndex = nextRiskRowIndex(riskData.adhoc);
+  riskData.adhoc.push({ rowIndex, title, startDate, endDate,
+    submissions: Object.fromEntries(RISK_CREWS.map(c=>[c,'미제출'])) });
+  renderAdhocTable();
+  toggleRiskAddForm('adhoc', false);
+  await riskAction({ action:'addAdhoc', title, startDate, endDate });
+  await riskAction({ action:'updateAdhoc', rowIndex, field:'title', value:title });
+  if(startDate) await riskAction({ action:'updateAdhoc', rowIndex, field:'startDate', value:startDate });
+  if(endDate) await riskAction({ action:'updateAdhoc', rowIndex, field:'endDate', value:endDate });
   showRiskToast('💾 추가됨');
-  loadRiskData();
+  riskPendingAdd = { kind:'adhoc', text:title };
+  setTimeout(loadRiskData, 1500);
 }
+
+async function addAdhocRow(){ toggleRiskAddForm('adhoc', true); }
 
 async function deleteAdhocRow(rowIndex){
   await riskAction({ action:'deleteAdhoc', rowIndex });
@@ -1795,14 +1903,32 @@ function updateCommonProgress(){
   document.getElementById('step2Next').disabled = !(done >= total);
 }
 
-// ── 지게차 QR 인증 현황 인라인 패널 (c09 아래) ────────────────────
+// ── 지게차 QR 인증 현황 인라인 패널 (c09 아래) — 요약만 표시, 상세는 🚜 지게차 점검 탭 ──
+function forkliftCounts(certified, inactive, detail){
+  const certCount = FORKLIFT_ALL.filter(id=>certified.has(id)).length;
+  const ngCount   = FORKLIFT_ALL.filter(id=>certified.has(id)&&(detail[id]||{}).status==='ng').length;
+  return { certCount, ngCount, okCount: certCount-ngCount, inactiveCount: inactive.size, total: FORKLIFT_ALL.length };
+}
+
 function renderForkliftInline(){
   const el = document.getElementById('forkliftInlinePanel');
   if(!el) return;
+  const c = forkliftCounts(state.forkliftCertified, state.forkliftInactive, state.forkliftDetail||{});
+  const uncert = c.total - c.certCount - c.inactiveCount;
+  el.innerHTML = `<div class="fk-panel" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:20px;">🚜</span>
+    <span style="font-size:18px;font-weight:700;color:var(--text);">지게차 인증 ${c.certCount}/${c.total}대</span>
+    ${c.ngCount>0?`<span style="font-size:16px;font-weight:700;color:var(--red);">· 이상있음 ${c.ngCount}</span>`:''}
+    ${uncert>0?`<span style="font-size:16px;color:var(--text2);">· 미인증 ${uncert}</span>`:''}
+    <button class="btn-qr" style="width:auto;margin:0 0 0 auto;padding:6px 12px;font-size:16px;" onclick="switchSvTab('forklift')">상세 보기 →</button>
+  </div>`;
+  if(fkTab.crew && fkTab.crew===state.shift && document.getElementById('sv-content-forklift').classList.contains('active')) renderForkliftTab();
+}
 
-  const certified  = state.forkliftCertified;
-  const inactive   = state.forkliftInactive;
-  const detail     = state.forkliftDetail || {};
+// 지게차 인증 현황 패널 HTML (🚜 지게차 점검 탭)
+// editable: 운휴 지정/해제 버튼 표시 여부 (본인 조 오늘 점검일 때만)
+function buildForkliftPanelHtml(certified, inactive, detail, opts){
+  opts = opts || {};
 
   const floorColor = { '1층':'#3b82f6', '2층':'#8b5cf6', '3층':'#f59e0b' };
   const floorBg    = { '1층':'rgba(59,130,246,0.08)', '2층':'rgba(139,92,246,0.08)', '3층':'rgba(245,158,11,0.08)' };
@@ -1823,8 +1949,8 @@ function renderForkliftInline(){
   let html = `<div class="fk-panel">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
       <span style="font-size:22px;">🚜</span>
-      <span style="font-size:21px;font-weight:700;color:var(--accent);">지게차 QR 인증 현황</span>
-      <button onclick="loadForkliftData()" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;color:var(--text2);font-size:17px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔄 새로고침</button>
+      <span style="font-size:21px;font-weight:700;color:var(--accent);">${opts.title||'지게차 QR 인증 현황'}</span>
+      <button onclick="${opts.refreshCall||'loadForkliftData()'}" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:7px;padding:4px 9px;color:var(--text2);font-size:17px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔄 새로고침</button>
     </div>
 
     <!-- 요약 칩 -->
@@ -1878,8 +2004,8 @@ function renderForkliftInline(){
           </div>
           ${isNG && parts.length>0 ? `<div class="fk-parts">이상부위: ${parts.join(', ')}</div>` : ''}
         </div>
-        ${(!isInactive && !isCert) ? `<button onclick="toggleInactive('${id}')" style="background:rgba(100,116,139,0.2);border:1px solid #64748b;border-radius:5px;padding:2px 7px;font-size:15px;color:#94a3b8;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;flex-shrink:0;">운휴</button>` : ''}
-        ${isInactive ? `<button onclick="toggleInactive('${id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:5px;padding:2px 7px;font-size:15px;color:#fca5a5;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;flex-shrink:0;">해제</button>` : ''}
+        ${(opts.editable && !isInactive && !isCert) ? `<button onclick="toggleInactive('${id}')" style="background:rgba(100,116,139,0.2);border:1px solid #64748b;border-radius:5px;padding:2px 7px;font-size:15px;color:#94a3b8;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;flex-shrink:0;">운휴</button>` : ''}
+        ${(opts.editable && isInactive) ? `<button onclick="toggleInactive('${id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:5px;padding:2px 7px;font-size:15px;color:#fca5a5;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;flex-shrink:0;">해제</button>` : ''}
       </div>`;
     });
 
@@ -1887,6 +2013,85 @@ function renderForkliftInline(){
   });
 
   html += `</div>`;
+  return html;
+}
+
+// ── 🚜 지게차 점검 탭 ─────────────────────────────────────────────
+const fkTab = { crew:null, date:null, certified:new Set(), detail:{}, loading:false, error:null };
+
+function openForkliftTab(){
+  const dateEl = document.getElementById('fkTabDate');
+  if(!fkTab.crew){
+    if(state.currentRole !== 'staff' && state.currentCrew) fkTab.crew = state.currentCrew;
+    else {
+      const shift = getShiftForDate(getEffectiveShiftDate());
+      const nowCrew = shift && shift[getCurrentTurnNow()];
+      fkTab.crew = (nowCrew && 'ABCD'.indexOf(nowCrew)>=0) ? nowCrew : 'A';
+    }
+  }
+  if(dateEl && !dateEl.value) dateEl.value = fmtDateYMD(getEffectiveShiftDate());
+  loadForkliftTab();
+}
+
+function selectFkTabCrew(crew){
+  fkTab.crew = crew;
+  loadForkliftTab();
+}
+
+async function loadForkliftTab(){
+  document.querySelectorAll('#fkTabCrewSelector .opt-btn').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.crew===fkTab.crew);
+  });
+  const dateEl = document.getElementById('fkTabDate');
+  const ymd = (dateEl && dateEl.value) || fmtDateYMD(getEffectiveShiftDate());
+  fkTab.date = ymd;
+  const [y,m,d] = ymd.split('-').map(Number);
+  const dObj = new Date(y, m-1, d);
+  const turn = getCrewTurnToday(fkTab.crew, dObj);
+  const info = document.getElementById('fkTabInfo');
+  if(info) info.textContent = `${fkTab.crew}조 · ${ymd} · ${turn ? turn+' 근무' : '휴무일'}`;
+
+  fkTab.loading = true; fkTab.error = null;
+  renderForkliftTab();
+  try{
+    const dateParam = `${y}. ${m}. ${d}`;
+    const url = `${APPS_SCRIPT_URL}?action=getForklift&date=${encodeURIComponent(dateParam)}&shift=${encodeURIComponent(fkTab.crew+'조')}&_=${Date.now()}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    fkTab.certified = new Set((data.certified || []).map(String));
+    fkTab.detail = data.detail || {};
+  }catch(e){
+    fkTab.certified = new Set(); fkTab.detail = {};
+    fkTab.error = (e && e.message) || '지게차 데이터를 불러올 수 없습니다.';
+  }
+  fkTab.loading = false;
+  // 오늘 본인 조라면 점검일지 쪽 상태도 같이 갱신
+  if(fkTab.crew===state.shift && ymd===fmtDateYMD(getEffectiveShiftDate())){
+    state.forkliftCertified = new Set(fkTab.certified);
+    state.forkliftDetail = fkTab.detail;
+    state.forkliftLoaded = true;
+    renderForkliftInline();
+  }
+  renderForkliftTab();
+}
+
+function renderForkliftTab(){
+  const el = document.getElementById('fkTabPanel');
+  if(!el) return;
+  if(fkTab.loading){
+    el.innerHTML = `<div style="text-align:center;color:var(--text2);padding:20px;">불러오는 중...</div>`;
+    return;
+  }
+  const isTodayOwn = state.currentRole !== 'staff' && fkTab.crew===state.currentCrew
+    && fkTab.date===fmtDateYMD(getEffectiveShiftDate());
+  let html = '';
+  if(fkTab.error) html += `<div class="warn-box"><span>⚠️</span><span>${escapeHtml(fkTab.error)}</span></div>`;
+  html += buildForkliftPanelHtml(fkTab.certified, isTodayOwn ? state.forkliftInactive : new Set(), fkTab.detail, {
+    title: `${fkTab.crew}조 지게차 QR 인증 현황`,
+    refreshCall: 'loadForkliftTab()',
+    editable: isTodayOwn,
+  });
   el.innerHTML = html;
 }
 
@@ -1922,6 +2127,7 @@ function toggleInactive(id){
     state.forkliftInactive.add(id);
   }
   renderForkliftInline();
+  renderForkliftTab();
   updateCommonProgress();
 }
 
