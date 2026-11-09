@@ -969,7 +969,10 @@ function enterSupervisorSystem(role, crew, name){
     sessionStorage.removeItem('sv_pending_loc');
     handleQRLocation(pendingLoc);
   }
-  if(role !== 'staff') startPatrolReminderWatcher();
+  if(role !== 'staff'){
+    if(!state.shift && crew) selectShift(crew);
+    startPatrolReminderWatcher();
+  }
 }
 
 function applyRoleUI(role){
@@ -1859,6 +1862,8 @@ function goStep(n){
   document.getElementById('step'+n).classList.add('active');
   updateStepDots(n);
   window.scrollTo(0,0);
+  // 관리감독자는 로그인한 조로 근무조를 자동 선택 (다른 조로 잘못 기록되는 것 방지)
+  if(n===0 && !state.shift && state.currentRole && state.currentRole!=='staff' && state.currentCrew) selectShift(state.currentCrew);
   if(n===2){ renderCommonList(); loadForkliftData(); }
   if(n===3){ try{ renderTurnList(); }catch(e){ console.error('renderTurnList 오류:',e); } }
   if(n===4) renderSummary();
@@ -2298,40 +2303,34 @@ async function loadSupervisorFieldPatrol5Day(crew){
   }
 
   let rows = [];
+  let loadError = false;
   try{
-    const startStr = fmtDateYMD(days[0]);
-    const endD = new Date(days[4]); endD.setDate(endD.getDate()+1); // 야간조 자정 이후 제출분 포함
+    // 앞뒤로 하루씩 여유를 두고 조회 (시간대 차이·야간조 자정 이후 제출분 포함)
+    const startD = new Date(days[0]); startD.setDate(startD.getDate()-1);
+    const startStr = fmtDateYMD(startD);
+    const endD = new Date(days[4]); endD.setDate(endD.getDate()+2);
     const endStr = fmtDateYMD(endD);
-    const url = `${APPS_SCRIPT_URL}?action=getData&start=${startStr}&end=${endStr}`;
-    const res = await fetch(url);
+    const url = `${APPS_SCRIPT_URL}?action=getData&start=${startStr}&end=${endStr}&_=${Date.now()}`;
+    const res = await fetch(url, {cache:'no-store'});
     const data = await res.json();
     rows = (data.rows||[]).filter(r=>r.shift && String(r.shift).replace('조','').trim().toUpperCase()===crew);
   }catch(e){
+    loadError = true;
     console.warn('현장 패트롤 이력 조회 실패:', e);
   }
 
-  fp5DayCache = { crew, days, rows };
+  fp5DayCache = { crew, days, rows, loadError };
   renderSupervisorFieldPatrol5Day();
 }
 
-// 해당 근무일에 제출된 점검일지 행 (야간조는 다음날 0~6시 제출분도 포함)
+// 해당 근무일에 제출된 점검일지 행 (야간조 자정 이후 제출분은 전날 근무일로 계산)
 function fpRowsForDay(rows, d, turn){
   const dateStr = fmtDateYMD(d);
-  const next = new Date(d); next.setDate(next.getDate()+1);
-  const nextStr = fmtDateYMD(next);
-  return (rows||[]).filter(r=>{
-    const rd = normalizeDateStr(r.date);
-    if(rd === dateStr) return true;
-    if(turn === '야간' && rd === nextStr && String(r.turn||'').includes('야간')){
-      const hm = String(r.timestamp||'').match(/\s(\d{1,2}):/);
-      return !hm || parseInt(hm[1],10) < 6;
-    }
-    return false;
-  });
+  return (rows||[]).filter(r=>rowShiftDates(r).includes(dateStr));
 }
 
 function renderSupervisorFieldPatrol5Day(){
-  const { crew, days, rows } = fp5DayCache;
+  const { crew, days, rows, loadError } = fp5DayCache;
   const zoneEl = document.getElementById('fpZoneContent');
   if(!zoneEl || !crew || !days) return;
 
@@ -2410,6 +2409,15 @@ function renderSupervisorFieldPatrol5Day(){
   });
 
   let head = `<div class="info-box"><span>📍</span><span>${crew}조 · 근무 1~5일차 현장 패트롤 QR 인증 현황<br><span style="font-size:17px;">위치에 도착하면 <b>📷 QR 스캔</b>을 눌러 현장 QR을 비춰주세요.</span></span></div>`;
+  if(loadError){
+    head += `<div class="warn-box"><span>⚠️</span><span>서버에서 제출 기록을 불러오지 못했습니다 (통신 불안정).<br>
+      <span style="font-size:17px;">아래 '미제출'은 이 휴대폰 기록만 반영된 것이라 실제와 다를 수 있습니다.</span><br>
+      <button class="btn-qr" style="width:auto;margin:6px 0 0;padding:6px 12px;font-size:16px;" onclick="loadSupervisorFieldPatrol5Day('${crew}')">🔄 다시 불러오기</button></span></div>`;
+  }
+  const pendingCnt = getPendingSubmits().length;
+  if(pendingCnt > 0){
+    head += `<div class="warn-box"><span>📤</span><span>전송 대기 중인 점검일지 ${pendingCnt}건 — 통신이 연결되면 자동으로 다시 보냅니다.</span></div>`;
+  }
   if(todayTotal > 0){
     head += `<div class="fp-summary">
       <span class="fp-status done">오늘 인증 ${todayDone} / ${todayTotal}</span>
@@ -2755,21 +2763,67 @@ async function submitResult(){
     ngDetail:ngDetail||'없음', memo:state.memo||'없음',
   };
 
-  fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-    .catch(()=>{});
+  // 예전에는 전송 실패를 무시하고 "저장됐습니다"로 넘어가서, 현장 통신이 끊기면
+  // 점검은 했는데 시트에는 기록이 없는(= 미점검으로 보이는) 경우가 생겼습니다.
+  // → 실패하면 이 휴대폰에 보관했다가 통신이 돌아오면 자동 재전송합니다.
+  const sent = await postPatrolPayload(payload);
+  if(!sent) addPendingSubmit(payload);
 
   overlay.classList.remove('show');
   state.submitted=true; stopReminder();
   // 현장 패트롤 탭: 오늘 위치 QR을 "QR 제출 완료"로 표시
   fpRecordSubmit(state.shift, fmtDateYMD(getEffectiveShiftDate()));
   if(state.currentRole !== 'staff' && fp5DayCache.crew) renderSupervisorFieldPatrol5Day();
-  showResult(okC,partC,ngC,naC,true);
+  showResult(okC,partC,ngC,naC,sent);
 }
+
+// ── 점검일지 전송 / 실패분 재전송 ─────────────────────────────────
+const PENDING_SUBMIT_KEY = 'sv_pending_submits';
+async function postPatrolPayload(payload){
+  try{
+    await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',keepalive:true,
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    return true;   // no-cors라 응답 내용은 못 보지만, 네트워크 오류가 아니면 전달된 것
+  }catch(e){
+    console.warn('점검일지 전송 실패:', e);
+    return false;
+  }
+}
+function getPendingSubmits(){
+  try{ return JSON.parse(localStorage.getItem(PENDING_SUBMIT_KEY) || '[]') || []; }catch(_){ return []; }
+}
+function setPendingSubmits(list){
+  try{ localStorage.setItem(PENDING_SUBMIT_KEY, JSON.stringify(list)); }catch(_){}
+}
+function addPendingSubmit(payload){
+  const list = getPendingSubmits();
+  list.push(payload);
+  setPendingSubmits(list);
+}
+let retryingPending = false;
+async function retryPendingSubmits(){
+  if(retryingPending) return;
+  const list = getPendingSubmits();
+  if(!list.length) return;
+  retryingPending = true;
+  const remain = [];
+  for(const p of list){
+    if(!(await postPatrolPayload(p))) remain.push(p);
+  }
+  setPendingSubmits(remain);
+  retryingPending = false;
+  if(remain.length < list.length && fp5DayCache.crew) loadSupervisorFieldPatrol5Day(fp5DayCache.crew);
+}
+window.addEventListener('load', retryPendingSubmits);
+window.addEventListener('online', retryPendingSubmits);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') retryPendingSubmits(); });
 
 function showResult(okC,partC,ngC,naC,success){
   goStep(5);
-  document.getElementById('resultIcon').textContent='✅';
-  document.getElementById('resultSub').textContent=`${state.shift}조 점검 완료 · 구글 시트에 저장됐습니다.`;
+  document.getElementById('resultIcon').textContent= success===false ? '📤' : '✅';
+  document.getElementById('resultSub').textContent= success===false
+    ? `${state.shift}조 점검 완료 · 통신이 불안정해 휴대폰에 임시 보관했습니다. 연결되면 자동 전송됩니다.`
+    : `${state.shift}조 점검 완료 · 구글 시트에 저장됐습니다.`;
   document.getElementById('resultStats').innerHTML=`
     <div class="stat-chips">
       <div class="stat-chip chip-ok">○ 양호 ${okC}</div>
@@ -3078,8 +3132,9 @@ function showDashboard(){
   }
   const today = new Date();
   const prior = new Date(); prior.setDate(today.getDate()-30);
-  document.getElementById('dashStart').value = prior.toISOString().slice(0,10);
-  document.getElementById('dashEnd').value   = today.toISOString().slice(0,10);
+  // toISOString()은 UTC라 한국시간 00~09시에는 '어제'가 되어 오늘 제출분이 빠졌음 → 로컬 날짜 사용
+  document.getElementById('dashStart').value = fmtDateYMD(prior);
+  document.getElementById('dashEnd').value   = fmtDateYMD(today);
   document.querySelectorAll('.step-screen').forEach(el=>el.classList.remove('active'));
   document.getElementById('stepDash').classList.add('active');
   window.scrollTo(0,0);
@@ -3120,8 +3175,10 @@ async function loadDashboard(){
   document.getElementById('dashLoading').style.display='block';
   document.getElementById('dashContent').style.display='none';
   try{
-    const url = APPS_SCRIPT_URL + '?action=getData&start='+start+'&end='+end;
-    const res  = await fetch(url);
+    // 종료일 야간조의 자정 이후 제출분까지 포함하도록 하루 더 조회
+    const qEnd = new Date(end + 'T00:00:00'); qEnd.setDate(qEnd.getDate()+1);
+    const url = APPS_SCRIPT_URL + '?action=getData&start='+start+'&end='+fmtDateYMD(qEnd)+'&_='+Date.now();
+    const res  = await fetch(url, {cache:'no-store'});
     const data = await res.json();
     renderDashboard(data, start, end);
   }catch(e){
@@ -3132,8 +3189,18 @@ async function loadDashboard(){
   }
 }
 
+// 구글 시트가 날짜 칸을 Date로 바꿔 저장하면 Apps Script JSON에는
+// "2026-11-08T15:00:00.000Z"(UTC) 형태로 오며, 앞 10자리만 잘라 쓰면 한국시간보다
+// 하루 이전 날짜가 됩니다. 시간대 정보가 붙은 값은 반드시 로컬(한국) 시간으로 변환합니다.
+function isZonedIso(v){
+  return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/.test(String(v||'').trim());
+}
 function normalizeDateStr(v){
   if(!v) return '';
+  if(v instanceof Date || isZonedIso(v)){
+    const d = new Date(v);
+    if(!isNaN(d.getTime())) return fmtDateYMD(d);
+  }
   const m = String(v).match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
   if(m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
   const d = new Date(v);
@@ -3141,14 +3208,39 @@ function normalizeDateStr(v){
   return '';
 }
 
+// 제출 시각(timestamp)의 '시' (로컬 기준). 알 수 없으면 null
+function rowHour(r){
+  const ts = r && r.timestamp;
+  if(!ts) return null;
+  if(ts instanceof Date || isZonedIso(ts)){
+    const d = new Date(ts);
+    return isNaN(d.getTime()) ? null : d.getHours();
+  }
+  const hm = String(ts).match(/(?:^|[\sT])(\d{1,2}):\d{2}/);
+  return hm ? parseInt(hm[1],10) : null;
+}
+
+// 점검일지 1건이 속한 "근무일" 후보 목록.
+// 야간조(22~06시)가 자정 이후에 제출하면 달력 날짜는 다음날이므로 하루 빼서 근무일로 봅니다.
+// 제출 시각을 알 수 없는 야간 제출은 당일/전날 둘 다 후보로 둡니다.
+function rowShiftDates(r){
+  const rd = normalizeDateStr(r && (r.date || r.timestamp));
+  if(!rd) return [];
+  if(!String((r && r.turn) || '').includes('야간')) return [rd];
+  const prev = new Date(rd + 'T00:00:00'); prev.setDate(prev.getDate()-1);
+  const prevStr = fmtDateYMD(prev);
+  const h = rowHour(r);
+  if(h === null) return [rd, prevStr];
+  return h < 6 ? [prevStr] : [rd];
+}
+
 function renderDashboard(data, start, end){
   document.getElementById('dashLoading').style.display='none';
   document.getElementById('dashContent').style.display='block';
   const rows = data.rows || [];
-  const now2 = new Date();
-  const pad2 = n=>String(n).padStart(2,'0');
-  const todayStr = `${now2.getFullYear()}-${pad2(now2.getMonth()+1)}-${pad2(now2.getDate())}`;
-  const todayRows = rows.filter(r=>normalizeDateStr(r.date) === todayStr);
+  // '오늘' = 현재 근무일 (00~06시는 전날 야간조 근무 중이므로 전날 기준)
+  const todayStr = fmtDateYMD(getEffectiveShiftDate());
+  const todayRows = rows.filter(r=>rowShiftDates(r).includes(todayStr));
   const TURNS = ['오전','오후','야간'];
   const CREWS = ['A','B','C','D'];
   const doneSet = new Set(todayRows.map(r=>{
@@ -3478,8 +3570,31 @@ function checkPatrolReminder(){
   const lastShown = Number(localStorage.getItem('sv_reminder_last_shown') || 0);
   if(lastShown && (Date.now() - lastShown) < PATROL_REMINDER_INTERVAL_MS) return;
 
-  showPatrolReminderModal();
+  // state.submitted는 새로고침·재로그인·'새 점검' 시 초기화되므로,
+  // 이 휴대폰 제출 기록과 서버 기록을 함께 확인한 뒤에만 알림을 띄웁니다.
+  const crew = state.currentCrew;
+  const effStr = fmtDateYMD(getEffectiveShiftDate());
+  if(crew && !getCrewTurnToday(crew)) return;             // 오늘 휴무
+  if(crew && fpHasLocalSubmit(crew, effStr)) return;       // 이 기기에서 제출함
+  if(crew && getPendingSubmits().some(p=>String(p.shift)===crew)) return; // 전송 대기 중
   localStorage.setItem('sv_reminder_last_shown', String(Date.now()));
+  hasServerSubmitToday(crew, effStr).then(done=>{
+    if(done){ fpRecordSubmit(crew, effStr); return; }
+    showPatrolReminderModal();
+  });
+}
+
+// 서버에 오늘 근무일 해당 조의 점검일지가 있는지 확인 (조회 실패 시 false)
+async function hasServerSubmitToday(crew, effStr){
+  if(!crew) return false;
+  try{
+    const next = new Date(effStr + 'T00:00:00'); next.setDate(next.getDate()+1);
+    const url = `${APPS_SCRIPT_URL}?action=getData&start=${effStr}&end=${fmtDateYMD(next)}&_=${Date.now()}`;
+    const res = await fetch(url, {cache:'no-store'});
+    const data = await res.json();
+    return (data.rows||[]).some(r=>r.shift && String(r.shift).replace('조','').trim().toUpperCase()===crew
+      && rowShiftDates(r).includes(effStr));
+  }catch(_){ return false; }
 }
 
 function showPatrolReminderModal(){
@@ -3543,7 +3658,7 @@ window.addEventListener('load',initPWA);
 // 휴대폰 브라우저가 예전 index.html을 저장해 두고 보여주는 문제 방지.
 // 서버의 최신 index.html을 캐시 없이 받아 APP_VERSION을 비교하고,
 // 다르면 새 버전으로 다시 엽니다. (코드 수정 시 APP_VERSION 값을 꼭 올릴 것)
-const APP_VERSION = '2026-10-14.3';
+const APP_VERSION = '2026-11-09.1';
 async function checkAppUpdate(){
   try{
     const res = await fetch(location.pathname + '?vcheck=' + Date.now(), {cache:'no-store'});
